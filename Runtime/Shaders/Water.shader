@@ -20,10 +20,11 @@
 			HLSLPROGRAM
 			#pragma prefer_hlslcc gles
 			/////////////////SHADER FEATURES//////////////////
-			#pragma shader_feature _REFLECTION_CUBEMAP _REFLECTION_PROBES _REFLECTION_PLANARREFLECTION
+			#pragma shader_feature _REFLECTION_CUBEMAP _REFLECTION_PROBES _REFLECTION_PLANARREFLECTION _LOWEND_MOBILE_QUALITY
 			#pragma multi_compile _ USE_STRUCTURED_BUFFER
 			#pragma multi_compile _ _STATIC_SHADER
 			#pragma multi_compile _ _BOATATTACK_WATER_DEBUG
+			#pragma multi_compile _ _LOWEND_MOBILE_QUALITY
 
 			// -------------------------------------
             // Universal Pipeline keywords/

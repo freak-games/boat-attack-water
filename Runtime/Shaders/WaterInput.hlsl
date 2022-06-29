@@ -29,8 +29,14 @@ SAMPLER(sampler_CubemapTexture);
 #endif
 TEXTURE2D(_WaterBufferA);
 TEXTURE2D(_WaterBufferB);
+
+#if defined(_LOWEND_MOBILE_QUALITY)
+#else
 TEXTURE2D(_CameraDepthTexture);
-TEXTURE2D(_CameraOpaqueTexture); SAMPLER(sampler_ScreenTextures_linear_clamp);
+TEXTURE2D(_CameraOpaqueTexture);
+#endif
+
+SAMPLER(sampler_ScreenTextures_linear_clamp);
 
 // Surface textures
 TEXTURE2D(_SurfaceMap); SAMPLER(sampler_SurfaceMap);

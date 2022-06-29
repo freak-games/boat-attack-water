@@ -32,7 +32,7 @@ namespace WaterSystem
 
         private bool _useComputeBuffer;
         public bool computeOverride;
-        
+
         [HideInInspector, SerializeField] public Data.Wave[] waves;
 
         private ComputeBuffer waveBuffer;
@@ -40,21 +40,21 @@ namespace WaterSystem
         private float _waveHeight;
 
         [SerializeReference] public Data.OceanSettings settingsData = new Data.OceanSettings();
-        [HideInInspector,SerializeField] private WaterResources resources;
+        [HideInInspector, SerializeField] private WaterResources resources;
 
         public DebugShading shadingDebug;
-        
+
         // Render Passes
         private InfiniteWaterPass _infiniteWaterPass;
         private WaterFxPass _waterBufferPass;
         private WaterCausticsPass _causticsPass;
-        
+
         // RuntimeMaterials
         private Material _causticMaterial;
 
         // Runttime Resources
         private Texture2D _rampTexture;
-        
+
         // Shader props
         private static readonly int CameraRoll = Shader.PropertyToID("_CameraRoll");
         private static readonly int InvViewProjection = Shader.PropertyToID("_InvViewProjection");
@@ -75,6 +75,7 @@ namespace WaterSystem
         private static readonly int BoatAttackWaterMicroWaveIntensity = Shader.PropertyToID("_BoatAttack_Water_MicroWaveIntensity");
         private static readonly int BoatAttackWaterFoamIntensity = Shader.PropertyToID("_BoatAttack_water_FoamIntensity");
         private static readonly int RampTexture = Shader.PropertyToID("_BoatAttack_RampTexture");
+        private static readonly string LowEndMobileQuality = "_LOWEND_MOBILE_QUALITY";
 
         private void OnEnable()
         {
@@ -82,20 +83,20 @@ namespace WaterSystem
             {
                 _instance = this;
             }
-            else if(_instance != this)
+            else if (_instance != this)
             {
                 Debug.LogError("Multiple Ocean Components cannot exist in tandem");
                 //SafeDestroy(this);
             }
-            
-            #if UNITY_EDITOR
-            if(resources == null)
+
+#if UNITY_EDITOR
+            if (resources == null)
             {
                 var data = AssetDatabase.LoadAssetAtPath<WaterResources>("Packages/com.unity.urp-water-system/Runtime/Data/WaterResources.asset");
                 resources = data;
             }
-            #endif
-            
+#endif
+
             RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
             if (!computeOverride)
                 _useComputeBuffer = SystemInfo.supportsComputeShaders &&
@@ -106,7 +107,8 @@ namespace WaterSystem
             Init();
         }
 
-        private void OnDisable() {
+        private void OnDisable()
+        {
             Cleanup();
         }
 
@@ -130,21 +132,26 @@ namespace WaterSystem
             if (settingsData.refType == Data.ReflectionType.PlanarReflection)
                 PlanarReflections.Execute(src, cam, transform);
 
-            if (_causticMaterial == null)
-            {
-                _causticMaterial = CoreUtils.CreateEngineMaterial(resources.causticShader);
-                _causticMaterial.SetTexture("_CausticMap", resources.defaultSurfaceMap);
-            }
+            if (QualitySettings.GetQualityLevel() == 1)
+                if (_causticMaterial == null)
+                {
+                    _causticMaterial = CoreUtils.CreateEngineMaterial(resources.causticShader);
+                    _causticMaterial.SetTexture("_CausticMap", resources.defaultSurfaceMap);
+                }
 
             _infiniteWaterPass ??= new InfiniteWaterPass(resources.defaultInfinitewWaterMesh);
             _waterBufferPass ??= new WaterFxPass();
-            _causticsPass ??= new WaterCausticsPass(_causticMaterial);
+
+            if (QualitySettings.GetQualityLevel() == 1)
+                _causticsPass ??= new WaterCausticsPass(_causticMaterial);
 
             var urpData = cam.GetUniversalAdditionalCameraData();
             urpData.scriptableRenderer.EnqueuePass(_infiniteWaterPass);
             urpData.scriptableRenderer.EnqueuePass(_waterBufferPass);
-            urpData.scriptableRenderer.EnqueuePass(_causticsPass);
-            
+
+            if (QualitySettings.GetQualityLevel() == 1)
+                urpData.scriptableRenderer.EnqueuePass(_causticsPass);
+
             var roll = cam.transform.localEulerAngles.z;
             Shader.SetGlobalFloat(CameraRoll, roll);
             Shader.SetGlobalMatrix(InvViewProjection,
@@ -157,8 +164,8 @@ namespace WaterSystem
 
             var newPos = cam.transform.TransformPoint(Vector3.forward * forwards);
             newPos.y = yOffset + transform.position.y;
-            newPos.x = quantizeValue * (int) (newPos.x / quantizeValue);
-            newPos.z = quantizeValue * (int) (newPos.z / quantizeValue);
+            newPos.x = quantizeValue * (int)(newPos.x / quantizeValue);
+            newPos.z = quantizeValue * (int)(newPos.z / quantizeValue);
 
             var blendDist = (settingsData.distanceBlend + 10) / 100f;
 
@@ -179,11 +186,25 @@ namespace WaterSystem
                     LightProbeUsage.Off,
                     null);
             }
+
+            int current = QualitySettings.GetQualityLevel();
+
+            if (current != m_qLevel)
+            {
+                m_qLevel = current;
+
+                if (m_qLevel == 1)
+                    Shader.EnableKeyword(LowEndMobileQuality);
+                else
+                    Shader.DisableKeyword(LowEndMobileQuality);
+            }
         }
+
+        int m_qLevel;
 
         private static void SafeDestroy(Object o)
         {
-            if(Application.isPlaying)
+            if (Application.isPlaying)
                 Destroy(o);
             else
                 DestroyImmediate(o);
@@ -199,7 +220,7 @@ namespace WaterSystem
             PlanarReflections.m_settings = settingsData.planarSettings;
             PlanarReflections.m_settings.m_ClipPlaneOffset = 0;//transform.position.y;
 
-            if(resources == null)
+            if (resources == null)
             {
                 resources = Resources.Load("WaterResources") as WaterResources;
             }
@@ -213,9 +234,9 @@ namespace WaterSystem
                 Shader.DisableKeyword("_BOATATTACK_WATER_DEBUG");
             }
             Shader.SetGlobalInt(BoatAttackWaterDebugPass, (int)shadingDebug);
-            
+
             //CPU side
-            if(GerstnerWavesJobs.Initialized == false)
+            if (GerstnerWavesJobs.Initialized == false)
                 GerstnerWavesJobs.Init();
         }
 
@@ -253,7 +274,7 @@ namespace WaterSystem
 
             Shader.SetGlobalColor(AbsorptionColor, settingsData._absorptionColor.gamma);
             Shader.SetGlobalColor(ScatteringColor, settingsData._scatteringColor.linear);
-            
+
             Shader.SetGlobalFloat(WaveHeight, _waveHeight);
             Shader.SetGlobalFloat(BoatAttackWaterMicroWaveIntensity, settingsData._microWaveIntensity);
             Shader.SetGlobalFloat(MaxWaveHeight, _maxWaveHeight);
@@ -261,7 +282,7 @@ namespace WaterSystem
             Shader.SetGlobalFloat(BoatAttackWaterDistanceBlend, settingsData.distanceBlend);
             Shader.SetGlobalFloat(BoatAttackWaterFoamIntensity, settingsData._foamIntensity);
 
-            switch(settingsData.refType)
+            switch (settingsData.refType)
             {
                 case Data.ReflectionType.Cubemap:
                     Shader.EnableKeyword("_REFLECTION_CUBEMAP");
@@ -300,18 +321,18 @@ namespace WaterSystem
                 Shader.SetGlobalVectorArray(WaveData, GetWaveData());
             }
         }
-        
+
         private void GenerateColorRamp()
         {
             const int rampCount = 2;
             const int rampRes = 128;
-            
+
             var pixelHeight = Mathf.CeilToInt(rampCount / 4.0f);
-            
-            if(_rampTexture == null)
-                _rampTexture = new Texture2D(rampRes,  pixelHeight, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
+
+            if (_rampTexture == null)
+                _rampTexture = new Texture2D(rampRes, pixelHeight, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
             _rampTexture.wrapMode = TextureWrapMode.Clamp;
-            
+
             // Foam shore
             var cols = new Color[rampRes * pixelHeight];
             for (var i = 0; i < rampRes; i++)
@@ -331,7 +352,7 @@ namespace WaterSystem
                 var val = settingsData._waveDepthProfile.Evaluate(i / (float)rampRes);
                 cols[i].b = Mathf.LinearToGammaSpace(val);
             }
-            
+
             _rampTexture.SetPixels(cols);
             _rampTexture.Apply();
             Shader.SetGlobalTexture(RampTexture, _rampTexture);
@@ -343,14 +364,14 @@ namespace WaterSystem
             for (var i = 0; i < waves.Length; i++)
             {
                 waveData[i] = new Vector4(waves[i].amplitude, waves[i].direction, waves[i].wavelength, waves[i].onmiDir);
-                waveData[i+10] = new Vector4(waves[i].origin.x, waves[i].origin.y, 0, 0);
+                waveData[i + 10] = new Vector4(waves[i].origin.x, waves[i].origin.y, 0, 0);
             }
             return waveData;
         }
 
         private void SetupWaves(bool custom)
         {
-            if(!custom)
+            if (!custom)
             {
                 //create basic waves based off basic wave settings
                 var backupSeed = Random.state;
@@ -383,7 +404,7 @@ namespace WaterSystem
 
         [Serializable]
         public enum DebugMode { none, stationary, screen };
-        
+
         [Serializable]
         public enum DebugShading
         {

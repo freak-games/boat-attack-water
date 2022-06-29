@@ -51,6 +51,9 @@ half3 Absorption(half depth)
 
 float2 AdjustedDepth(half2 uvs, half4 additionalData)
 {
+	#if defined(_LOWEND_MOBILE_QUALITY)
+	return 1000;
+	#else
 	const float rawD = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_ScreenTextures_point_clamp, uvs);
 	const float d = LinearEyeDepth(rawD, _ZBufferParams);
 	float x = d * additionalData.x - additionalData.y;
@@ -62,6 +65,7 @@ float2 AdjustedDepth(half2 uvs, half4 additionalData)
 	
 	float y = rawD * -_ProjectionParams.x;
 	return float2(x, y);
+	#endif
 }
 
 float AdjustWaterTextureDepth(float input)
@@ -81,18 +85,26 @@ float WaterTextureDepth(float2 uv)
 
 float3 WaterDepth(float3 positionWS, half4 additionalData, half2 screenUVs)// x = seafloor depth, y = water depth
 {
+	#if defined(_LOWEND_MOBILE_QUALITY)
+	return 1000;
+	#else
 	float3 out_depth;
 	out_depth.xz = AdjustedDepth(screenUVs, additionalData);
 	const float wd = WaterTextureDepth(screenUVs);
 	out_depth.y = wd + positionWS.y;
 	return out_depth;
+	#endif
 }
 
 half3 Refraction(half2 distortion, half depth, half edgeFade)
 {
+	#if defined(_LOWEND_MOBILE_QUALITY)
+	return 0;
+	#else
 	half3 output = SAMPLE_TEXTURE2D_LOD(_CameraOpaqueTexture, sampler_ScreenTextures_linear_clamp, distortion, depth * 0.25).rgb;
 	output *= max(Absorption(depth), 1-edgeFade);
 	return output;
+	#endif
 }
 
 half2 DistortionUVs(half depth, float3 normalWS, float3 viewDirectionWS)
@@ -126,15 +138,15 @@ half4 AdditionalData(float3 postionWS, WaveStruct wave)
 float4 DetailUVs(float3 positionWS, half noise)
 {
     float4 output = positionWS.xzxz * half4(0.4, 0.4, 0.1, 0.1);
-    output.xy -= WATER_TIME * 0.1h + (noise * 0.2); // small detail
-    output.zw += WATER_TIME * 0.05h + (noise * 0.1); // medium detail
+    output.xy -= WATER_TIME * 0.1h * 2 + (noise * 0.2); // small detail
+    output.zw += WATER_TIME * 0.05h * 2 + (noise * 0.1); // medium detail
     return output;
 }
 
 void DetailNormals(inout float3 normalWS, float4 uvs, half4 waterFX, float depth)
 {
-    half2 detailBump1 = SAMPLE_TEXTURE2D(_SurfaceMap, sampler_SurfaceMap, uvs.zw).xy * 2 - 1;
-	half2 detailBump2 = SAMPLE_TEXTURE2D(_SurfaceMap, sampler_SurfaceMap, uvs.xy).xy * 2 - 1;
+    half2 detailBump1 = SAMPLE_TEXTURE2D(_SurfaceMap, sampler_SurfaceMap, uvs.zw * 0.2).xy * 2 - 1;
+	half2 detailBump2 = SAMPLE_TEXTURE2D(_SurfaceMap, sampler_SurfaceMap, uvs.xy*0.2).xy * 2 - 1;
 	half2 detailBump = (detailBump1 + detailBump2 * 0.5) * saturate(depth * 0.25);
 
 	half3 normal1 = half3(detailBump.x, 0, detailBump.y) * _BoatAttack_Water_MicroWaveIntensity;
@@ -196,11 +208,20 @@ Varyings WaveVertexOperations(Varyings input)
 
 void InitializeInputData(Varyings input, out WaterInputData inputData, float2 screenUV)
 {
-    float3 depth = WaterDepth(input.positionWS, input.additionalData, screenUV);// TODO - hardcoded shore depth UVs
+    #if defined(_LOWEND_MOBILE_QUALITY)
+	float3 depth = 1000;// TODO - hardcoded shore depth UVs
+	#else
+	float3 depth = WaterDepth(input.positionWS, input.additionalData, screenUV);// TODO - hardcoded shore depth UVs
+	#endif
     // Sample water FX texture
     inputData.waterBufferA = WaterBufferA(input.preWaveSP.xy);
+	
+	#if defined(_LOWEND_MOBILE_QUALITY)
+    inputData.waterBufferB = 0;
+	#else
     inputData.waterBufferB = WaterBufferB(input.preWaveSP.xy);
 	inputData.waterBufferB.b = AdjustWaterTextureDepth(inputData.waterBufferB.b);
+	#endif
 
     inputData.positionWS = input.positionWS;
     
@@ -210,6 +231,9 @@ void InitializeInputData(Varyings input, out WaterInputData inputData, float2 sc
     
     inputData.viewDirectionWS = input.viewDirectionWS.xyz;
     
+	#if defined(_LOWEND_MOBILE_QUALITY)
+    inputData.refractionUV = 0;
+	#else
     half2 distortion = DistortionUVs(depth.x, inputData.normalWS, input.viewDirectionWS);
 	distortion = screenUV.xy + distortion;// * clamp(depth.x, 0, 5);
 	float d = depth.x;
@@ -217,6 +241,7 @@ void InitializeInputData(Varyings input, out WaterInputData inputData, float2 sc
 	distortion = depth.x < 0 ? screenUV.xy : distortion;
     inputData.refractionUV = distortion;
     depth.x = depth.x < 0 ? d : depth.x;
+	#endif
 
     inputData.detailUV = input.uv;
 
@@ -235,6 +260,11 @@ void InitializeSurfaceData(inout WaterInputData input, out WaterSurfaceData surf
 
 	float depth = input.depth;
 	
+	#if defined(_LOWEND_MOBILE_QUALITY)
+	half3 foamWaveRamp = SAMPLE_TEXTURE2D(_BoatAttack_RampTexture, sampler_BoatAttack_Linear_Clamp_RampTexture,  additionalData.w).g;
+	
+	half foamBlendMask = foamWaveRamp + input.waterBufferA.r;// + edgeFoam + input.waterBufferA.r;// max(max(waveFoam, edgeFoam), input.waterFX.r * 2);
+	#else
 	// Foam
 	half depthEdge = saturate(depth.x);// min(saturate(depth.x), input.waterBufferB.b * 0.25 + 0.5);
 	//half edgeFoam = pow(saturate(1 - min(depth, input.waterBufferB.b) * 0.25 - 0.5) * depthEdge, 2.4) * 6.8;
@@ -242,6 +272,7 @@ void InitializeSurfaceData(inout WaterInputData input, out WaterSurfaceData surf
 	half3 foamWaveRamp = SAMPLE_TEXTURE2D(_BoatAttack_RampTexture, sampler_BoatAttack_Linear_Clamp_RampTexture,  additionalData.w).g;
 	
 	half foamBlendMask = max(foamWaveRamp, foamShoreRamp) + input.waterBufferA.r;// + edgeFoam + input.waterBufferA.r;// max(max(waveFoam, edgeFoam), input.waterFX.r * 2);
+	#endif
 	foamBlendMask += -1 + _BoatAttack_water_FoamIntensity;
 	
 	
@@ -253,7 +284,7 @@ void InitializeSurfaceData(inout WaterInputData input, out WaterSurfaceData surf
 	
 	mask = saturate(mask);
 
-	half4 foamMap = half4(SAMPLE_TEXTURE2D(_FoamMap, sampler_FoamMap,  input.detailUV.zw).rgb, 0); //r=thick, g=medium, b=light
+	half4 foamMap = half4(SAMPLE_TEXTURE2D(_FoamMap, sampler_FoamMap,  input.detailUV.zw * 0.2).rgb, 0); //r=thick, g=medium, b=light
 	surfaceData.foamMask = length(foamMap * mask);
 	
 	//surfaceData.foamMask = saturate(length(foamMap * pow(foamBlendMask, 1) /* foamBlend */) * 1.5 - 2 + _BoatAttack_water_FoamIntensity) + input.waterBufferA.r * 0.25;
@@ -271,36 +302,52 @@ float3 WaterShading(WaterInputData input, WaterSurfaceData surfaceData, float4 a
 	
     // Lighting
 	Light mainLight = GetMainLight(TransformWorldToShadowCoord(input.positionWS), input.positionWS, 1);
+	
+	#if defined(_LOWEND_MOBILE_QUALITY)
+    half volumeShadow = 0;
+    half3 GI = 2;
+	#else
     half volumeShadow = SoftShadows(screenUV, input.positionWS, input.viewDirectionWS, input.depth);
     half3 GI = SampleSH(input.normalWS);
+	#endif
 
     // SSS
     half3 directLighting = dot(mainLight.direction, half3(0, 1, 0)) * mainLight.color;
     directLighting += saturate(pow(dot(input.viewDirectionWS.xyz, -mainLight.direction) * additionalData.z, 3)) * mainLight.color;
+
+	#if defined(_LOWEND_MOBILE_QUALITY)
+	half3 shadowAttenuation = 1;
+	#else
+	half3 shadowAttenuation = mainLight.shadowAttenuation;
+	#endif
 	
     BRDFData brdfData;
     half alpha = 1;
-    InitializeBRDFData(half3(0, 0, 0), 0, half3(1, 1, 1), 0.95, alpha, brdfData);
-	half3 spec = DirectBDRF(brdfData, input.normalWS, mainLight.direction, input.viewDirectionWS) * mainLight.color * mainLight.shadowAttenuation;
+    InitializeBRDFData(half3(0, 0, 0), 0, half3(1, 1, 1), 1, alpha, brdfData);
+	half3 spec = DirectBDRF(brdfData, input.normalWS, mainLight.direction, input.viewDirectionWS) * mainLight.color * shadowAttenuation;
 
 	// Foam
-	surfaceData.foam *= (GI + directLighting * mainLight.shadowAttenuation) * 3;
+	surfaceData.foam *= (GI + directLighting * shadowAttenuation) * 3;
 	
 	// SSS
     half3 sss = directLighting * volumeShadow + GI;
     sss *= Scattering(input.depth);
-
+	
 	// Reflections
 	half3 reflection = SampleReflections(input.normalWS, input.viewDirectionWS, screenUV, 0.0);
 	reflection *= edgeFade;
 
+	#if defined(_LOWEND_MOBILE_QUALITY)
+	half3 refraction = 0;
+	#else
 	// Refraction
 	half3 refraction = Refraction(input.refractionUV, input.depth, edgeFade);
+	#endif
 
 	// Do compositing
 	half3 output = lerp(lerp(refraction + sss, reflection + spec, fresnelTerm), surfaceData.foam, surfaceData.foamMask);
 	// final
-	output = MixFog(output, input.fogCoord);
+	// output = MixFog(output, input.fogCoord);
 
 	// Debug block
 	#if defined(_BOATATTACK_WATER_DEBUG)
@@ -343,7 +390,7 @@ float WaterNearFade(float3 positionWS)
 {
     float3 camPos = GetCameraPositionWS();
     camPos.y = 0;
-    return 1 - saturate((distance(positionWS, camPos) - _BoatAttack_Water_DistanceBlend) * 0.05);
+    return 1 - saturate((distance(positionWS, camPos) - _BoatAttack_Water_DistanceBlend) * 0.02);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

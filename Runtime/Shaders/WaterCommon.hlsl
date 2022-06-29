@@ -305,12 +305,12 @@ float3 WaterShading(WaterInputData input, WaterSurfaceData surfaceData, float4 a
 	
 	#if defined(_LOWEND_MOBILE_QUALITY)
     half volumeShadow = 0;
-    half3 GI = 2;
+    half3 GI = SampleSH(input.normalWS) * 1.5;
 	#else
     half volumeShadow = SoftShadows(screenUV, input.positionWS, input.viewDirectionWS, input.depth);
     half3 GI = SampleSH(input.normalWS);
 	#endif
-
+	
     // SSS
     half3 directLighting = dot(mainLight.direction, half3(0, 1, 0)) * mainLight.color;
     directLighting += saturate(pow(dot(input.viewDirectionWS.xyz, -mainLight.direction) * additionalData.z, 3)) * mainLight.color;
@@ -347,7 +347,7 @@ float3 WaterShading(WaterInputData input, WaterSurfaceData surfaceData, float4 a
 	// Do compositing
 	half3 output = lerp(lerp(refraction + sss, reflection + spec, fresnelTerm), surfaceData.foam, surfaceData.foamMask);
 	// final
-	// output = MixFog(output, input.fogCoord);
+	output = MixFog(output, input.fogCoord);
 
 	// Debug block
 	#if defined(_BOATATTACK_WATER_DEBUG)

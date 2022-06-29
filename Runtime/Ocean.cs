@@ -236,7 +236,7 @@ namespace WaterSystem
             }
         }
 
-        int m_qLevel;
+        int m_qLevel = -1;
 
         private static void SafeDestroy(Object o)
         {

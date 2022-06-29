@@ -88,10 +88,10 @@ half3 SampleReflections(half3 normalWS, half3 viewDirectionWS, half2 screenUV, h
     half3 reflection = 0;
     half2 refOffset = 0;
 
-#if _REFLECTION_CUBEMAP
-    half3 reflectVector = reflect(-viewDirectionWS, normalWS);
-    reflection = SAMPLE_TEXTURECUBE(_CubemapTexture, sampler_CubemapTexture, reflectVector).rgb;
-#elif _REFLECTION_PROBES
+// #if _REFLECTION_CUBEMAP
+//     half3 reflectVector = reflect(-viewDirectionWS, normalWS);
+//     reflection = SAMPLE_TEXTURECUBE(_CubemapTexture, sampler_CubemapTexture, reflectVector).rgb;
+#if _REFLECTION_PROBES
     half3 reflectVector = reflect(-viewDirectionWS, normalWS);
     reflection = GlossyEnvironmentReflection(reflectVector, 0, 1);
 #elif _REFLECTION_PLANARREFLECTION

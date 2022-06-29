@@ -171,6 +171,53 @@ namespace WaterSystem
 
             var matrix = Matrix4x4.TRS(newPos, Quaternion.identity, Vector3.one * blendDist); // transform.localToWorldMatrix;
 
+            bool receiveShadows = false;
+            int current = QualitySettings.GetQualityLevel();
+
+            if (current != m_qLevel)
+            {
+                m_qLevel = current;
+
+                if (m_qLevel < 1)
+                    Shader.EnableKeyword(LowEndMobileQuality);
+                else
+                    Shader.DisableKeyword(LowEndMobileQuality);
+
+                if (m_qLevel > 0)
+                    settingsData.refType = Data.ReflectionType.PlanarReflection;
+                else
+                    settingsData.refType = Data.ReflectionType.ReflectionProbe;
+
+                if (m_qLevel < 2)
+                    settingsData.planarSettings.m_ResolutionMode = PlanarReflections.ResolutionModes.Half;
+                else
+                    settingsData.planarSettings.m_ResolutionMode = PlanarReflections.ResolutionModes.Quarter;
+
+                switch (settingsData.refType)
+                {
+                    case Data.ReflectionType.Cubemap:
+                        Shader.EnableKeyword("_REFLECTION_CUBEMAP");
+                        Shader.DisableKeyword("_REFLECTION_PROBES");
+                        Shader.DisableKeyword("_REFLECTION_PLANARREFLECTION");
+                        break;
+                    case Data.ReflectionType.ReflectionProbe:
+                        Shader.DisableKeyword("_REFLECTION_CUBEMAP");
+                        Shader.EnableKeyword("_REFLECTION_PROBES");
+                        Shader.DisableKeyword("_REFLECTION_PLANARREFLECTION");
+                        break;
+                    case Data.ReflectionType.PlanarReflection:
+                        Shader.DisableKeyword("_REFLECTION_CUBEMAP");
+                        Shader.DisableKeyword("_REFLECTION_PROBES");
+                        Shader.EnableKeyword("_REFLECTION_PLANARREFLECTION");
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                if (m_qLevel > 1)
+                    receiveShadows = true;
+            }
+
             foreach (var mesh in resources.defaultWaterMeshes)
             {
                 Graphics.DrawMesh(mesh,
@@ -181,22 +228,10 @@ namespace WaterSystem
                     0,
                     null,
                     ShadowCastingMode.Off,
-                    true,
+                    receiveShadows,
                     null,
                     LightProbeUsage.Off,
                     null);
-            }
-
-            int current = QualitySettings.GetQualityLevel();
-
-            if (current != m_qLevel)
-            {
-                m_qLevel = current;
-
-                if (m_qLevel == 1)
-                    Shader.EnableKeyword(LowEndMobileQuality);
-                else
-                    Shader.DisableKeyword(LowEndMobileQuality);
             }
         }
 

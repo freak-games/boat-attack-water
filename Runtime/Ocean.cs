@@ -134,7 +134,7 @@ namespace WaterSystem
 
             int current = QualitySettings.GetQualityLevel();
 
-            if (current > 1)
+            if (current > 0)
                 if (_causticMaterial == null)
                 {
                     _causticMaterial = CoreUtils.CreateEngineMaterial(resources.causticShader);
@@ -144,14 +144,14 @@ namespace WaterSystem
             _infiniteWaterPass ??= new InfiniteWaterPass(resources.defaultInfinitewWaterMesh);
             _waterBufferPass ??= new WaterFxPass();
 
-            if (current > 1)
+            if (current > 0)
                 _causticsPass ??= new WaterCausticsPass(_causticMaterial);
 
             var urpData = cam.GetUniversalAdditionalCameraData();
             urpData.scriptableRenderer.EnqueuePass(_infiniteWaterPass);
             urpData.scriptableRenderer.EnqueuePass(_waterBufferPass);
 
-            if (current > 1)
+            if (current > 0)
                 urpData.scriptableRenderer.EnqueuePass(_causticsPass);
 
             var roll = cam.transform.localEulerAngles.z;

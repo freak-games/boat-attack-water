@@ -90,6 +90,14 @@
 				InfinitePlane plane = WorldPlane(i.viewDirectionWS, i.positionWS);
 				i.positionWS = plane.positionWS;
                 half3 viewDirectionWS = GetCameraPositionWS().xyz - i.positionWS.xyz;
+
+            	Output output;
+				if(length(viewDirectionWS) > _ProjectionParams.z)
+				{
+					clip(-1);
+					return output;
+				}
+
 				float3 viewPos = TransformWorldToView(i.positionWS);
 				float4 additionalData = float4(length(viewPos / viewPos.z), length(viewDirectionWS), waterBufferA.w, 0);
 
@@ -111,7 +119,6 @@
                 color.a = 1;
                 color.rgb = WaterShading(inputData, surfaceData, additionalData, screenUV.xy);
 
-            	Output output;
             	output.color = color;
             	output.depth = plane.depth;
             	return output;

@@ -58,7 +58,7 @@ namespace WaterSystem
             Shader.PropertyToID("_BoatAttack_Water_DistanceBlend");
 
         // private static readonly int AbsorptionColor = Shader.PropertyToID("_AbsorptionColor");
-        // private static readonly int ScatteringColor = Shader.PropertyToID("_ScatteringColor");
+        private static readonly int ScatteringColor = Shader.PropertyToID("_ScatteringColor");
 
         private static readonly int BoatAttackWaterMicroWaveIntensity =
             Shader.PropertyToID("_BoatAttack_Water_MicroWaveIntensity");
@@ -66,7 +66,7 @@ namespace WaterSystem
         // private static readonly int BoatAttackWaterFoamIntensity =
             // Shader.PropertyToID("_BoatAttack_water_FoamIntensity");
 
-        private static readonly int RampTexture = Shader.PropertyToID("_BoatAttack_RampTexture");
+        // private static readonly int RampTexture = Shader.PropertyToID("_BoatAttack_RampTexture");
         private static readonly string LowEndMobileQuality = "_LOWEND_MOBILE_QUALITY";
 
         private void OnEnable()
@@ -164,7 +164,7 @@ namespace WaterSystem
             _waveHeight = transform.position.y;
 
             // Shader.SetGlobalColor(AbsorptionColor, _absorptionColor.gamma);
-            // Shader.SetGlobalColor(ScatteringColor, _scatteringColor.linear);
+            Shader.SetGlobalColor(ScatteringColor, _scatteringColor.linear);
             // Shader.SetGlobalFloat(WaveHeight, _waveHeight);
             Shader.SetGlobalFloat(BoatAttackWaterMicroWaveIntensity, _microWaveIntensity);
             // Shader.SetGlobalFloat(MaxWaveHeight, _maxWaveHeight);
@@ -196,7 +196,7 @@ namespace WaterSystem
 
             _rampTexture.SetPixels(cols);
             _rampTexture.Apply();
-            Shader.SetGlobalTexture(RampTexture, _rampTexture);
+            // Shader.SetGlobalTexture(RampTexture, _rampTexture);
         }
 
         private Vector4[] GetWaveData()

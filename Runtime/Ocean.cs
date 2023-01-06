@@ -22,12 +22,32 @@ namespace WaterSystem
         public Material defaultSeaMaterial;
         public Mesh[] defaultWaterMeshes;
 
+        public float distanceBlend = 100.0f;
+        public int randomSeed = 3234;
+
+        // Visual Surface
+        public float _waterMaxVisibility = 5.0f;
+        public Color _absorptionColor = new Color(0.2f, 0.6f, 0.8f);
+        public Color _scatteringColor = new Color(0.0f, 0.085f, 0.1f);
+
+        public AnimationCurve _waveDepthProfile = AnimationCurve.Linear(0.0f, 1f, 0.98f, 0f);
+
+        // Micro(surface) Waves
+        public float _microWaveIntensity = 0.25f;
+
+        [Range(3, 12)] public int waveCount = 6;
+        public float amplitude;
+        public float direction;
+        public float wavelength;
+
+
+        // Shore
+        public float _foamIntensity = 1.0f;
+
         [HideInInspector, SerializeField] public Data.Wave[] waves;
 
         private float _maxWaveHeight;
         private float _waveHeight;
-
-        [SerializeReference] public Data.OceanSettings settingsData = new Data.OceanSettings();
 
         private WaterFxPass _waterBufferPass;
         private Material _causticMaterial;
@@ -80,9 +100,6 @@ namespace WaterSystem
         {
             if (cam.cameraType == CameraType.Preview) return;
 
-            if (settingsData.refType == Data.ReflectionType.PlanarReflection)
-                PlanarReflections.Execute(src, cam, transform);
-
             _waterBufferPass ??= new WaterFxPass();
 
             var urpData = cam.GetUniversalAdditionalCameraData();
@@ -102,14 +119,12 @@ namespace WaterSystem
             newPos.x = quantizeValue * (int)(newPos.x / quantizeValue);
             newPos.z = quantizeValue * (int)(newPos.z / quantizeValue);
 
-            var blendDist = (settingsData.distanceBlend + 10) / 100f;
+            var blendDist = (distanceBlend + 10) / 100f;
 
             var matrix =
                 Matrix4x4.TRS(newPos, Quaternion.identity, Vector3.one * blendDist); // transform.localToWorldMatrix;
 
             Shader.EnableKeyword(LowEndMobileQuality);
-
-            settingsData.refType = Data.ReflectionType.ReflectionProbe;
 
             Shader.DisableKeyword("_REFLECTION_CUBEMAP");
             Shader.EnableKeyword("_REFLECTION_PROBES");
@@ -138,16 +153,12 @@ namespace WaterSystem
             GenerateColorRamp();
             SetWaves();
 
-            PlanarReflections.m_planeOffset = transform.position.y;
-            PlanarReflections.m_settings = settingsData.planarSettings;
-            PlanarReflections.m_settings.m_ClipPlaneOffset = 0; //transform.position.y;
-
             Shader.DisableKeyword("_BOATATTACK_WATER_DEBUG");
         }
 
         private void SetWaves()
         {
-            SetupWaves(settingsData._customWaves);
+            SetupWaves();
 
             Shader.SetGlobalTexture(FoamMap, defaultFoamMap);
             Shader.SetGlobalTexture(SurfaceMap, defaultSurfaceMap);
@@ -163,15 +174,15 @@ namespace WaterSystem
 
             _waveHeight = transform.position.y;
 
-            Shader.SetGlobalColor(AbsorptionColor, settingsData._absorptionColor.gamma);
-            Shader.SetGlobalColor(ScatteringColor, settingsData._scatteringColor.linear);
+            Shader.SetGlobalColor(AbsorptionColor, _absorptionColor.gamma);
+            Shader.SetGlobalColor(ScatteringColor, _scatteringColor.linear);
 
             Shader.SetGlobalFloat(WaveHeight, _waveHeight);
-            Shader.SetGlobalFloat(BoatAttackWaterMicroWaveIntensity, settingsData._microWaveIntensity);
+            Shader.SetGlobalFloat(BoatAttackWaterMicroWaveIntensity, _microWaveIntensity);
             Shader.SetGlobalFloat(MaxWaveHeight, _maxWaveHeight);
-            Shader.SetGlobalFloat(MaxDepth, settingsData._waterMaxVisibility);
-            Shader.SetGlobalFloat(BoatAttackWaterDistanceBlend, settingsData.distanceBlend);
-            Shader.SetGlobalFloat(BoatAttackWaterFoamIntensity, settingsData._foamIntensity);
+            Shader.SetGlobalFloat(MaxDepth, _waterMaxVisibility);
+            Shader.SetGlobalFloat(BoatAttackWaterDistanceBlend, distanceBlend);
+            Shader.SetGlobalFloat(BoatAttackWaterFoamIntensity, _foamIntensity);
 
             Shader.SetGlobalInt(WaveCount, waves.Length);
             Shader.DisableKeyword("USE_STRUCTURED_BUFFER");
@@ -193,7 +204,7 @@ namespace WaterSystem
             var cols = new Color[rampRes * pixelHeight];
             for (var i = 0; i < rampRes; i++)
             {
-                var val = settingsData._waveDepthProfile.Evaluate(i / (float)rampRes);
+                var val = _waveDepthProfile.Evaluate(i / (float)rampRes);
                 cols[i].b = Mathf.LinearToGammaSpace(val);
             }
 
@@ -215,38 +226,29 @@ namespace WaterSystem
             return waveData;
         }
 
-        private void SetupWaves(bool custom)
+        private void SetupWaves()
         {
-            if (!custom)
+            var backupSeed = Random.state;
+            Random.InitState(randomSeed); ;
+            var a = amplitude;
+            var d = direction;
+            var l = wavelength;
+            var numWave = waveCount;
+            waves = new Data.Wave[numWave];
+
+            var r = 1f / numWave;
+
+            for (var i = 0; i < numWave; i++)
             {
-                //create basic waves based off basic wave settings
-                var backupSeed = Random.state;
-                Random.InitState(settingsData.randomSeed);
-                var basicWaves = settingsData._basicWaveSettings;
-                var a = basicWaves.amplitude;
-                var d = basicWaves.direction;
-                var l = basicWaves.wavelength;
-                var numWave = basicWaves.waveCount;
-                waves = new Data.Wave[numWave];
-
-                var r = 1f / numWave;
-
-                for (var i = 0; i < numWave; i++)
-                {
-                    var p = Mathf.Lerp(0.5f, 1.5f, i * r);
-                    var amp = a * p * Random.Range(0.33f, 1.66f);
-                    var dir = d + Random.Range(-90f, 90f);
-                    var len = l * p * Random.Range(0.6f, 1.4f);
-                    waves[i] = new Data.Wave(amp, dir, len, Vector2.zero, false);
-                    Random.InitState(settingsData.randomSeed + i + 1);
-                }
-
-                Random.state = backupSeed;
+                var p = Mathf.Lerp(0.5f, 1.5f, i * r);
+                var amp = a * p * Random.Range(0.33f, 1.66f);
+                var dir = d + Random.Range(-90f, 90f);
+                var len = l * p * Random.Range(0.6f, 1.4f);
+                waves[i] = new Data.Wave(amp, dir, len, Vector2.zero, false);
+                Random.InitState(randomSeed + i + 1);
             }
-            else
-            {
-                waves = settingsData._waves.ToArray();
-            }
+
+            Random.state = backupSeed;
         }
     }
 }

@@ -3,45 +3,16 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-CBUFFER_START(UnityPerMaterial)
-half4 _DitherPattern_TexelSize;
-CBUFFER_END
-
-half3 _AbsorptionColor;
 half3 _ScatteringColor;
-int _BoatAttack_Water_DebugPass;
 half _BoatAttack_Water_DistanceBlend;
 half _BoatAttack_Water_MicroWaveIntensity;
-half _BoatAttack_water_FoamIntensity;
 half _WaveHeight;
 half _MaxDepth;
 half _MaxWaveHeight;
-half4 _VeraslWater_DepthCamParams;
-float4x4 _InvViewProjection;
 
-// Screen Effects textures
-SAMPLER(sampler_ScreenTextures_point_clamp);
-#if defined(_REFLECTION_PLANARREFLECTION)
-TEXTURE2D(_PlanarReflectionTexture);
-#elif defined(_REFLECTION_CUBEMAP)
-TEXTURECUBE(_CubemapTexture);
-SAMPLER(sampler_CubemapTexture);
-#endif
 TEXTURE2D(_WaterBufferA);
-TEXTURE2D(_WaterBufferB);
-
-#if defined(_LOWEND_MOBILE_QUALITY)
-#else
-TEXTURE2D(_CameraDepthTexture);
-TEXTURE2D(_CameraOpaqueTexture);
-#endif
-
 SAMPLER(sampler_ScreenTextures_linear_clamp);
-
-// Surface textures
 TEXTURE2D(_SurfaceMap); SAMPLER(sampler_SurfaceMap);
-TEXTURE2D(_FoamMap); SAMPLER(sampler_FoamMap);
-TEXTURE2D(_DitherPattern); SAMPLER(sampler_DitherPattern);
 
 ///////////////////////////////////////////////////////////////////////////////
 //                  				Structs		                             //
@@ -62,12 +33,8 @@ struct Varyings // fragment struct
 	float4 	viewDirectionWS 		: TEXCOORD2;	// view direction
 	float3	preWaveSP 				: TEXCOORD3;	// screen position of the verticies before wave distortion
 	half2 	fogFactorNoise          : TEXCOORD4;	// x: fogFactor, y: noise
-	float4	additionalData			: TEXCOORD5;	// x = distance surface to floor from view, y = distance to surface, z = normalized wave height, w = horizontal movement
-	float4	screenPosition			: TEXCOORD6;	// screen position after the waves
 
 	float4	positionCS				: SV_POSITION;
-	UNITY_VERTEX_INPUT_INSTANCE_ID
-	UNITY_VERTEX_OUTPUT_STEREO
 };
 
 struct VaryingsInfinite // infinite water Varyings
@@ -86,7 +53,6 @@ struct WaterInputData
     half3 normalWS;
     half3 viewDirectionWS;
     float4 detailUV;
-    float4 shadowCoord;
     half4 waterBufferA;
     half fogCoord;
     half3 GI;

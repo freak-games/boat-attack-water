@@ -66,7 +66,7 @@
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
 				output.positionCS = vertexInput.positionCS;
 				output.positionWS = vertexInput.positionWS;
-				output.screenPosition = ComputeScreenPos(vertexInput.positionCS);
+				// output.screenPosition = ComputeScreenPos(vertexInput.positionCS);
 
 				float3 viewPos = vertexInput.positionVS;
 				output.viewDirectionWS.xyz = UNITY_MATRIX_IT_MV[2].xyz;
@@ -80,7 +80,7 @@
 			Output InfiniteWaterFragment(Varyings i)
 			{
 			    half4 screenUV = 0.0;
-	            screenUV.xy  = i.screenPosition.xy / i.screenPosition.w; // screen UVs
+	            // screenUV.xy  = i.screenPosition.xy / i.screenPosition.w; // screen UVs
 	            screenUV.zw  = screenUV.xy; // screen UVs
                 //half2 screenUV = i.screenPosition.xy / i.screenPosition.w; // screen UVs
 
@@ -105,19 +105,19 @@
             	
                 i.normalWS = half3(0.0, 1.0, 0.0);
                 i.viewDirectionWS = normalize(GetCameraPositionWS() - i.positionWS).xyzz;
-                i.additionalData = additionalData;
+                // i.additionalData = additionalData;
                 i.uv = DetailUVs(i.positionWS * (1 / _Size), 1);
             	i.preWaveSP = screenUV.xyz;
 
                 WaterInputData inputData;
                 InitializeInputData(i, inputData, screenUV.xy);
 
-                WaterSurfaceData surfaceData;
-                InitializeSurfaceData(inputData, surfaceData, additionalData);
+                // WaterSurfaceData surfaceData;
+                // InitializeSurfaceData(inputData, surfaceData, additionalData);
 
                 half4 color;
                 color.a = 1;
-                color.rgb = WaterShading(inputData, surfaceData, additionalData, screenUV.xy);
+                color.rgb = WaterShading(inputData, screenUV.xy);
 
             	output.color = color;
             	output.depth = plane.depth;

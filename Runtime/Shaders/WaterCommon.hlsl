@@ -60,7 +60,6 @@ Varyings WaveVertexOperations(Varyings input)
 
     // After waves
     input.positionCS = TransformWorldToHClip(input.positionWS);
-    input.screenPosition = ComputeScreenPos(input.positionCS);
     input.viewDirectionWS.xyz = SafeNormalize(_WorldSpaceCameraPos - input.positionWS);
 
     // Fog
@@ -81,20 +80,17 @@ void InitializeInputData(Varyings input, out WaterInputData inputData, float2 sc
 
     inputData.normalWS = input.normalWS;
 
-    // TODO: performance impact
     DetailNormals(inputData.normalWS, input.uv, inputData.waterBufferA);
 
     inputData.viewDirectionWS = input.viewDirectionWS.xyz;
 
     inputData.detailUV = input.uv;
 
-    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.normalWS);
-
     inputData.fogCoord = input.fogFactorNoise.x;
     inputData.GI = 0;
 }
 
-float3 WaterShading(WaterInputData input, float4 additionalData, float2 screenUV)
+float3 WaterShading(WaterInputData input, float2 screenUV)
 {
     half fresnelTerm = CalculateFresnelTerm(input.normalWS, input.viewDirectionWS);
     Light mainLight = GetMainLight(TransformWorldToShadowCoord(input.positionWS), input.positionWS, 0);
@@ -141,7 +137,6 @@ Varyings WaterVertex(Attributes v)
 half4 WaterFragment(Varyings IN) : SV_Target
 {
     float4 screenUV = 0.0;
-    screenUV.xy = IN.screenPosition.xy / IN.screenPosition.w;
     screenUV.zw = IN.preWaveSP.xy;
 
     WaterInputData inputData;
@@ -149,7 +144,7 @@ half4 WaterFragment(Varyings IN) : SV_Target
 
     half4 current;
     current.a = WaterNearFade(IN.positionWS);
-    current.rgb = WaterShading(inputData, IN.additionalData, screenUV.xy);
+    current.rgb = WaterShading(inputData, screenUV.xy);
 
     return current;
 }

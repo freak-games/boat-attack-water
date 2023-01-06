@@ -23,8 +23,7 @@
 
             HLSLPROGRAM
             // TODO: Why it's needed?
-            #pragma shader_feature _REFLECTION_PROBES _REFLECTION_PLANARREFLECTION
-            #pragma multi_compile _ _LOWEND_MOBILE_QUALITY
+            #pragma shader_feature _REFLECTION_PROBES
             
             #pragma multi_compile_instancing
             #pragma multi_compile_fog

@@ -41,8 +41,6 @@ namespace WaterSystem
         private static readonly int BoatAttackWaterMicroWaveIntensity =
             Shader.PropertyToID("_BoatAttack_Water_MicroWaveIntensity");
 
-        private static readonly string LowEndMobileQuality = "_LOWEND_MOBILE_QUALITY";
-
         private void OnEnable()
         {
             RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
@@ -82,12 +80,6 @@ namespace WaterSystem
             var matrix =
                 Matrix4x4.TRS(newPos, Quaternion.identity, Vector3.one * blendDist); // transform.localToWorldMatrix;
 
-            Shader.EnableKeyword(LowEndMobileQuality);
-
-            Shader.DisableKeyword("_REFLECTION_CUBEMAP");
-            Shader.EnableKeyword("_REFLECTION_PROBES");
-            Shader.DisableKeyword("_REFLECTION_PLANARREFLECTION");
-
             foreach (var mesh in defaultWaterMeshes)
             {
                 Graphics.DrawMesh(mesh,
@@ -109,8 +101,6 @@ namespace WaterSystem
         public void Init()
         {
             SetWaves();
-
-            Shader.DisableKeyword("_BOATATTACK_WATER_DEBUG");
         }
 
         private void SetWaves()
@@ -122,7 +112,6 @@ namespace WaterSystem
             Shader.SetGlobalFloat(BoatAttackWaterMicroWaveIntensity, _microWaveIntensity);
             Shader.SetGlobalFloat(BoatAttackWaterDistanceBlend, distanceBlend);
             Shader.SetGlobalInt(WaveCount, waves.Length);
-            Shader.DisableKeyword("USE_STRUCTURED_BUFFER");
             Shader.SetGlobalVectorArray(WaveData, GetWaveData());
         }
 

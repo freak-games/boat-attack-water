@@ -1,13 +1,7 @@
-﻿using System;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
 using WaterSystem.Rendering;
 
 namespace WaterSystem
@@ -16,9 +10,9 @@ namespace WaterSystem
     [AddComponentMenu("URP Water System/Ocean")]
     public class Ocean : MonoBehaviour
     {
-        public Texture2D defaultFoamMap; // a default foam texture map
+        // public Texture2D defaultFoamMap; // a default foam texture map
         public Texture2D defaultSurfaceMap; // a default normal/caustic map
-        public Texture2D defaultWaterFX; // texture with correct values for default WaterFX
+        // public Texture2D defaultWaterFX; // texture with correct values for default WaterFX
         public Material defaultSeaMaterial;
         public Mesh[] defaultWaterMeshes;
 
@@ -40,10 +34,6 @@ namespace WaterSystem
         public float direction;
         public float wavelength;
 
-
-        // Shore
-        public float _foamIntensity = 1.0f;
-
         [HideInInspector, SerializeField] public Data.Wave[] waves;
 
         private float _maxWaveHeight;
@@ -53,29 +43,28 @@ namespace WaterSystem
         private Material _causticMaterial;
         private Texture2D _rampTexture;
 
-        private static readonly int CameraRoll = Shader.PropertyToID("_CameraRoll");
-        private static readonly int InvViewProjection = Shader.PropertyToID("_InvViewProjection");
-        private static readonly int FoamMap = Shader.PropertyToID("_FoamMap");
+        // private static readonly int CameraRoll = Shader.PropertyToID("_CameraRoll");
+        // private static readonly int InvViewProjection = Shader.PropertyToID("_InvViewProjection");
+        // private static readonly int FoamMap = Shader.PropertyToID("_FoamMap");
         private static readonly int SurfaceMap = Shader.PropertyToID("_SurfaceMap");
-        private static readonly int WaveHeight = Shader.PropertyToID("_WaveHeight");
-        private static readonly int MaxWaveHeight = Shader.PropertyToID("_MaxWaveHeight");
-        private static readonly int MaxDepth = Shader.PropertyToID("_MaxDepth");
+        // private static readonly int WaveHeight = Shader.PropertyToID("_WaveHeight");
+        // private static readonly int MaxWaveHeight = Shader.PropertyToID("_MaxWaveHeight");
+        // private static readonly int MaxDepth = Shader.PropertyToID("_MaxDepth");
         private static readonly int WaveCount = Shader.PropertyToID("_WaveCount");
-        private static readonly int CubemapTexture = Shader.PropertyToID("_CubemapTexture");
         private static readonly int WaveData = Shader.PropertyToID("waveData");
-        private static readonly int WaterFXShaderTag = Shader.PropertyToID("_WaterFXMap");
+        // private static readonly int WaterFXShaderTag = Shader.PropertyToID("_WaterFXMap");
 
         private static readonly int BoatAttackWaterDistanceBlend =
             Shader.PropertyToID("_BoatAttack_Water_DistanceBlend");
 
-        private static readonly int AbsorptionColor = Shader.PropertyToID("_AbsorptionColor");
-        private static readonly int ScatteringColor = Shader.PropertyToID("_ScatteringColor");
+        // private static readonly int AbsorptionColor = Shader.PropertyToID("_AbsorptionColor");
+        // private static readonly int ScatteringColor = Shader.PropertyToID("_ScatteringColor");
 
         private static readonly int BoatAttackWaterMicroWaveIntensity =
             Shader.PropertyToID("_BoatAttack_Water_MicroWaveIntensity");
 
-        private static readonly int BoatAttackWaterFoamIntensity =
-            Shader.PropertyToID("_BoatAttack_water_FoamIntensity");
+        // private static readonly int BoatAttackWaterFoamIntensity =
+            // Shader.PropertyToID("_BoatAttack_water_FoamIntensity");
 
         private static readonly int RampTexture = Shader.PropertyToID("_BoatAttack_RampTexture");
         private static readonly string LowEndMobileQuality = "_LOWEND_MOBILE_QUALITY";
@@ -106,9 +95,9 @@ namespace WaterSystem
             urpData.scriptableRenderer.EnqueuePass(_waterBufferPass);
 
             var roll = cam.transform.localEulerAngles.z;
-            Shader.SetGlobalFloat(CameraRoll, roll);
-            Shader.SetGlobalMatrix(InvViewProjection,
-                (GL.GetGPUProjectionMatrix(cam.projectionMatrix, false) * cam.worldToCameraMatrix).inverse);
+            // Shader.SetGlobalFloat(CameraRoll, roll);
+            // Shader.SetGlobalMatrix(InvViewProjection,
+            //     (GL.GetGPUProjectionMatrix(cam.projectionMatrix, false) * cam.worldToCameraMatrix).inverse);
 
             const float quantizeValue = 6.25f;
             const float forwards = 10f;
@@ -160,9 +149,9 @@ namespace WaterSystem
         {
             SetupWaves();
 
-            Shader.SetGlobalTexture(FoamMap, defaultFoamMap);
+            // Shader.SetGlobalTexture(FoamMap, defaultFoamMap);
             Shader.SetGlobalTexture(SurfaceMap, defaultSurfaceMap);
-            Shader.SetGlobalTexture(WaterFXShaderTag, defaultWaterFX);
+            // Shader.SetGlobalTexture(WaterFXShaderTag, defaultWaterFX);
 
             _maxWaveHeight = 0f;
             foreach (var w in waves)
@@ -174,16 +163,13 @@ namespace WaterSystem
 
             _waveHeight = transform.position.y;
 
-            Shader.SetGlobalColor(AbsorptionColor, _absorptionColor.gamma);
-            Shader.SetGlobalColor(ScatteringColor, _scatteringColor.linear);
-
-            Shader.SetGlobalFloat(WaveHeight, _waveHeight);
+            // Shader.SetGlobalColor(AbsorptionColor, _absorptionColor.gamma);
+            // Shader.SetGlobalColor(ScatteringColor, _scatteringColor.linear);
+            // Shader.SetGlobalFloat(WaveHeight, _waveHeight);
             Shader.SetGlobalFloat(BoatAttackWaterMicroWaveIntensity, _microWaveIntensity);
-            Shader.SetGlobalFloat(MaxWaveHeight, _maxWaveHeight);
-            Shader.SetGlobalFloat(MaxDepth, _waterMaxVisibility);
+            // Shader.SetGlobalFloat(MaxWaveHeight, _maxWaveHeight);
+            // Shader.SetGlobalFloat(MaxDepth, _waterMaxVisibility);
             Shader.SetGlobalFloat(BoatAttackWaterDistanceBlend, distanceBlend);
-            Shader.SetGlobalFloat(BoatAttackWaterFoamIntensity, _foamIntensity);
-
             Shader.SetGlobalInt(WaveCount, waves.Length);
             Shader.DisableKeyword("USE_STRUCTURED_BUFFER");
             Shader.SetGlobalVectorArray(WaveData, GetWaveData());

@@ -4,6 +4,68 @@ using UnityEngine.Rendering.Universal;
 
 namespace WaterSystem.Rendering
 {
+    public class InfiniteWaterPass : ScriptableRenderPass
+    {
+        private Mesh infiniteMesh;
+        private Shader s;
+        private Material infiniteMaterial;
+
+        public InfiniteWaterPass(Mesh mesh, Shader shader)
+        {
+            if (mesh)
+                infiniteMesh = mesh;
+
+            if (shader)
+                s = shader;
+            renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
+        }
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            Camera cam = renderingData.cameraData.camera;
+
+            if (cam.cameraType != CameraType.Game &&
+                cam.cameraType != CameraType.SceneView ||
+                cam.name.Contains("Reflections")) return;
+
+            if (infiniteMesh == null)
+            {
+                Debug.LogError("Infinite Water Pass Mesh is missing.");
+                return;
+            }
+
+            if (infiniteMaterial == null)
+            {
+                var mat = new Material(s)
+                {
+                    hideFlags = HideFlags.HideAndDontSave
+                };
+                infiniteMaterial = mat;
+            }
+
+            if (!infiniteMaterial || !infiniteMesh) return;
+
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, new ProfilingSampler("Infinite Water")))
+            {
+                var probe = RenderSettings.ambientProbe;
+
+                infiniteMaterial.SetFloat("_BumpScale", 0.5f);
+
+                // Create the matrix to position the caustics mesh.
+                var position = cam.transform.position;
+                var matrix = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one);
+                // Setup the CommandBuffer and draw the mesh with the caustic material and matrix
+                MaterialPropertyBlock matBloc = new MaterialPropertyBlock();
+                matBloc.CopySHCoefficientArraysFrom(new[] { probe });
+                cmd.DrawMesh(infiniteMesh, matrix, infiniteMaterial, 0, 0, matBloc);
+
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
+        }
+    }
+
     public class WaterFxPass : ScriptableRenderPass
     {
         private static int m_BufferATexture = Shader.PropertyToID("_WaterBufferA");

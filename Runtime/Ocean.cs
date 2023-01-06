@@ -25,8 +25,11 @@ namespace WaterSystem
         public float direction;
         public float wavelength;
 
+        public Shader waterInf;
+
         [HideInInspector, SerializeField] public Data.Wave[] waves;
 
+        private InfiniteWaterPass _infiniteWaterPass;
         private WaterFxPass _waterBufferPass;
 
         private static readonly int SurfaceMap = Shader.PropertyToID("_SurfaceMap");
@@ -40,6 +43,8 @@ namespace WaterSystem
 
         private static readonly int BoatAttackWaterMicroWaveIntensity =
             Shader.PropertyToID("_BoatAttack_Water_MicroWaveIntensity");
+
+        [SerializeField] private Mesh defaultInfinitewWaterMesh;
 
         private void OnEnable()
         {
@@ -61,11 +66,13 @@ namespace WaterSystem
         {
             if (cam.cameraType == CameraType.Preview) return;
 
+            _infiniteWaterPass ??= new InfiniteWaterPass(defaultInfinitewWaterMesh, waterInf);
             _waterBufferPass ??= new WaterFxPass();
 
             var urpData = cam.GetUniversalAdditionalCameraData();
+            urpData.scriptableRenderer.EnqueuePass(_infiniteWaterPass);
             urpData.scriptableRenderer.EnqueuePass(_waterBufferPass);
-            
+
             const float quantizeValue = 6.25f;
             const float forwards = 10f;
             const float yOffset = -0.25f;

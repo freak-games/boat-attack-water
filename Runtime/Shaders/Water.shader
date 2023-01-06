@@ -1,26 +1,26 @@
 ﻿Shader "Boat Attack/Water"
 {
-    Properties
-    {
-    }
+    Properties {}
     SubShader
     {
         Tags
         {
-            "RenderType"="Opaque" "RenderPipeline" = "UniversalPipeline"
+            "RenderType"="Transparent" "Queue"="Transparent-100" "RenderPipeline" = "UniversalPipeline"
         }
         ZWrite On
 
         Pass
         {
-            Name "WaterShading"
             Tags
             {
                 "LightMode" = "UniversalForward"
             }
 
+            ZWrite On
+
+            Blend SrcAlpha OneMinusSrcAlpha
+
             HLSLPROGRAM
-            
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
 

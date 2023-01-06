@@ -33,6 +33,7 @@ struct Varyings // fragment struct
 	float4 	viewDirectionWS 		: TEXCOORD2;	// view direction
 	float3	preWaveSP 				: TEXCOORD3;	// screen position of the verticies before wave distortion
 	half2 	fogFactorNoise          : TEXCOORD4;	// x: fogFactor, y: noise
+	half4 	screenPosition          : TEXCOORD5;	// x: fogFactor, y: noise
 
 	float4	positionCS				: SV_POSITION;
 };

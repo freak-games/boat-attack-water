@@ -75,33 +75,33 @@ namespace WaterSystem
         
         private void OnEnable()
         {
-            var settings = serializedObject.FindProperty(nameof(Ocean.settingsData));
-            
-            // Color Settings
-            maxVisibility = settings.FindPropertyRelative(nameof(Data.OceanSettings._waterMaxVisibility));
-            absorptionColor = settings.FindPropertyRelative(nameof(Data.OceanSettings._absorptionColor));
-            scatteringColor = settings.FindPropertyRelative(nameof(Data.OceanSettings._scatteringColor));
-            // Wave Settings
-            customWaves = settings.FindPropertyRelative(nameof(Data.OceanSettings._customWaves));
-            var basicWaves = settings.FindPropertyRelative(nameof(Data.OceanSettings._basicWaveSettings));
-            basicWaveCount = basicWaves.FindPropertyRelative(nameof(Data.BasicWaves.waveCount));
-            basicWaveAmp = basicWaves.FindPropertyRelative(nameof(Data.BasicWaves.amplitude));
-            basicWaveDir = basicWaves.FindPropertyRelative(nameof(Data.BasicWaves.direction));
-            basicWaveWavelength = basicWaves.FindPropertyRelative(nameof(Data.BasicWaves.wavelength));
-            
-            microWaveIntensity = settings.FindPropertyRelative(nameof(Data.OceanSettings._microWaveIntensity));
-            
-            waveFoamProfile = settings.FindPropertyRelative(nameof(Data.OceanSettings._waveFoamProfile));
-            
-            waveDepthProfile = settings.FindPropertyRelative(nameof(Data.OceanSettings._waveDepthProfile));
-            // Reflection Settings
-            refelctionType = settings.FindPropertyRelative(nameof(Data.OceanSettings.refType));
-            cubemap = settings.FindPropertyRelative(nameof(Data.OceanSettings.cubemapRefType));
-            planarSettings = settings.FindPropertyRelative(nameof(Data.OceanSettings.planarSettings));
-
-            // Shore
-            foamIntensity = settings.FindPropertyRelative(nameof(Data.OceanSettings._foamIntensity));
-            foamProfile = settings.FindPropertyRelative(nameof(Data.OceanSettings._shoreFoamProfile));
+            // var settings = serializedObject.FindProperty(nameof(Ocean.settingsData));
+            //
+            // // Color Settings
+            // maxVisibility = settings.FindPropertyRelative(nameof(Data.OceanSettings._waterMaxVisibility));
+            // absorptionColor = settings.FindPropertyRelative(nameof(Data.OceanSettings._absorptionColor));
+            // scatteringColor = settings.FindPropertyRelative(nameof(Data.OceanSettings._scatteringColor));
+            // // Wave Settings
+            // customWaves = settings.FindPropertyRelative(nameof(Data.OceanSettings._customWaves));
+            // var basicWaves = settings.FindPropertyRelative(nameof(Data.OceanSettings._basicWaveSettings));
+            // basicWaveCount = basicWaves.FindPropertyRelative(nameof(Data.BasicWaves.waveCount));
+            // basicWaveAmp = basicWaves.FindPropertyRelative(nameof(Data.BasicWaves.amplitude));
+            // basicWaveDir = basicWaves.FindPropertyRelative(nameof(Data.BasicWaves.direction));
+            // basicWaveWavelength = basicWaves.FindPropertyRelative(nameof(Data.BasicWaves.wavelength));
+            //
+            // microWaveIntensity = settings.FindPropertyRelative(nameof(Data.OceanSettings._microWaveIntensity));
+            //
+            // waveFoamProfile = settings.FindPropertyRelative(nameof(Data.OceanSettings._waveFoamProfile));
+            //
+            // waveDepthProfile = settings.FindPropertyRelative(nameof(Data.OceanSettings._waveDepthProfile));
+            // // Reflection Settings
+            // refelctionType = settings.FindPropertyRelative(nameof(Data.OceanSettings.refType));
+            // cubemap = settings.FindPropertyRelative(nameof(Data.OceanSettings.cubemapRefType));
+            // planarSettings = settings.FindPropertyRelative(nameof(Data.OceanSettings.planarSettings));
+            //
+            // // Shore
+            // foamIntensity = settings.FindPropertyRelative(nameof(Data.OceanSettings._foamIntensity));
+            // foamProfile = settings.FindPropertyRelative(nameof(Data.OceanSettings._shoreFoamProfile));
         }
 
         public override void OnInspectorGUI()
@@ -110,8 +110,6 @@ namespace WaterSystem
             var ocean = target as Ocean;
             EditorGUI.BeginChangeCheck();
 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(Ocean.shadingDebug)));
-            
             foreach (var value in Enum.GetValues(typeof(Sections)))
             {
                 DoSection((Sections)value);

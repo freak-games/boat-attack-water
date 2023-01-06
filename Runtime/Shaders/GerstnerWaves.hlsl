@@ -15,7 +15,7 @@ struct Wave
 #if defined(USE_STRUCTURED_BUFFER)
 StructuredBuffer<Wave> _WaveDataBuffer;
 #else
-half4 waveData[20]; // 0-9 amplitude, direction, wavelength, omni, 10-19 origin.xy
+float4 waveData[20]; // 0-9 amplitude, direction, wavelength, omni, 10-19 origin.xy
 #endif
 
 struct WaveStruct
@@ -25,7 +25,7 @@ struct WaveStruct
 	float foam;
 };
 
-WaveStruct GerstnerWave(half2 pos, float waveCountMulti, half amplitude, half2 direction, half wavelength, half omni, half2 omniPos)
+WaveStruct GerstnerWave(float2 pos, float waveCountMulti, float amplitude, float2 direction, float wavelength, float omni, float2 omniPos)
 {
 	WaveStruct waveOut;
 #if defined(_STATIC_SHADER)
@@ -35,60 +35,58 @@ WaveStruct GerstnerWave(half2 pos, float waveCountMulti, half amplitude, half2 d
 #endif
 
 	////////////////////////////////wave value calculations//////////////////////////
-	half3 wave = 0; // wave vector
-	half w = 6.28318 / wavelength; // 2pi over wavelength(hardcoded)
-	half wSpeed = sqrt(9.8 * w); // frequency of the wave based off wavelength
-	half peak = 2; // peak value, 1 is the sharpest peaks
-	half qi = peak / (amplitude * w * _WaveCount);
+	float3 wave = 0; // wave vector
+	float w = 6.28318 / wavelength; // 2pi over wavelength(hardcoded)
+	float wSpeed = sqrt(9.8 * w); // frequency of the wave based off wavelength
+	float peak = 2; // peak value, 1 is the sharpest peaks
+	float qi = peak / (amplitude * w * _WaveCount);
 	
-	half2 windDir = direction; // calculate wind direction
-	half dir = dot(windDir, pos - (omniPos * omni)); // calculate a gradient along the wind direction
+	float2 windDir = direction; // calculate wind direction
+	float dir = dot(windDir, pos - (omniPos * omni)); // calculate a gradient along the wind direction
 
 	////////////////////////////position output calculations/////////////////////////
-	half calc = dir * w + -time * wSpeed; // the wave calculation
-	half cosCalc = cos(calc); // cosine version(used for horizontal undulation)
-	half sinCalc = sin(calc); // sin version(used for vertical undulation)
+	float calc = dir * w + -time * wSpeed; // the wave calculation
+	float cosCalc = cos(calc); // cosine version(used for horizontal undulation)
+	float sinCalc = sin(calc); // sin version(used for vertical undulation)
 
 	// foam height raw
-	half a = (sinCalc + 1) * 0.5;
+	float a = (sinCalc + 1) * 0.5;
 	
 	// calculate the offsets for the current point
 	wave.xz = qi * amplitude * windDir.xy * cosCalc;
 	wave.y = sinCalc * amplitude * waveCountMulti;// the height is divided by the number of waves
 
 	////////////////////////////normal output calculations/////////////////////////
-	half wa = w * amplitude;
+	float wa = w * amplitude;
 	// normal vector
-	half3 n = half3(-(windDir.xy * wa * cosCalc),
+	float3 n = float3(-(windDir.xy * wa * cosCalc),
 					1-qi * wa * sinCalc);
 
 	////////////////////////////////assign to output///////////////////////////////
 	waveOut.position = wave * saturate(amplitude * 10000);
 	waveOut.normal = (n.xzy * waveCountMulti);
-	half b = dot(n.xy * 2, -windDir);
+	float b = dot(n.xy * 2, -windDir);
 	waveOut.foam = saturate(a + b);
 
 	return waveOut;
 }
 
-WaveStruct GerstnerWave(half2 pos, float waveCountMulti, half amplitude, half direction, half wavelength, half omni, half2 omniPos)
+WaveStruct GerstnerWave(float2 pos, float waveCountMulti, float amplitude, float direction, float wavelength, float omni, float2 omniPos)
 {
 	direction = radians(direction); // convert the incoming degrees to radians, for directional waves
-	half2 dirWaveInput = half2(sin(direction), cos(direction)) * (1 - omni);
-	half2 omniWaveInput = (pos - omniPos) * omni;
+	float2 dirWaveInput = float2(sin(direction), cos(direction)) * (1 - omni);
+	float2 omniWaveInput = (pos - omniPos) * omni;
 
-	half2 windDir = normalize(dirWaveInput + omniWaveInput); // calculate wind direction
+	float2 windDir = normalize(dirWaveInput + omniWaveInput); // calculate wind direction
 	return GerstnerWave(pos, waveCountMulti, amplitude, windDir, wavelength, omni, omniPos);
 }
 
-inline void SampleWaves(float3 position, half opacity, out WaveStruct waveOut)
+inline void SampleWaves(float3 position, out WaveStruct waveOut)
 {
 	waveOut = (WaveStruct)0;
-	half2 pos = position.xz;
-	//waveOut.position = 0;
-	//waveOut.normal = 0;
-	half waveCountMulti = 1.0 / _WaveCount;
-	opacity = saturate(opacity);
+	float2 pos = position.xz;
+	float waveCountMulti = 1.0 / _WaveCount;
+	float opacity = saturate(0.25);
 
 	UNITY_LOOP
 	for(uint i = 0; i < _WaveCount; i++)
@@ -116,11 +114,11 @@ inline void SampleWaves(float3 position, half opacity, out WaveStruct waveOut)
 		waveOut.foam += wave.foam;
 	}
 	waveOut.position *= opacity;// opacityMask;
-	waveOut.normal *= half3(opacity, 1, opacity);
+	waveOut.normal *= float3(opacity, 1, opacity);
 	waveOut.foam *= waveCountMulti * opacity;
 }
 
-void Gerstner_SG_test_half(float2 pos, half amp, half2 dir, half length, out float3 position, out float3 normal)
+void Gerstner_SG_test_float(float2 pos, float amp, float2 dir, float length, out float3 position, out float3 normal)
 {
 	
 	WaveStruct wave = GerstnerWave(pos,

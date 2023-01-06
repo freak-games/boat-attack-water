@@ -1,61 +1,35 @@
 ﻿Shader "Boat Attack/Water"
 {
-	Properties
-	{
-		_DitherPattern ("Dithering Pattern", 2D) = "bump" {}
-		[Toggle(_STATIC_SHADER)] _Static ("Static", Float) = 0
-	}
-	SubShader
-	{
-		Tags { "RenderType"="Transparent" "Queue"="Transparent-100" "RenderPipeline" = "UniversalPipeline" }
-		ZWrite On
+    Properties {}
+    SubShader
+    {
+        Tags
+        {
+            "RenderType"="Transparent" "Queue"="Transparent-100" "RenderPipeline" = "UniversalPipeline"
+        }
+        ZWrite On
 
-		Blend SrcAlpha OneMinusSrcAlpha // Traditional transparency
+        Pass
+        {
+            Tags
+            {
+                "LightMode" = "UniversalForward"
+            }
 
-		Pass
-		{
-			Name "WaterShading"
-			Tags{"LightMode" = "UniversalForward"}
+            ZWrite On
 
-			HLSLPROGRAM
-			#pragma prefer_hlslcc gles
-			/////////////////SHADER FEATURES//////////////////
-			#pragma shader_feature _REFLECTION_CUBEMAP _REFLECTION_PROBES _REFLECTION_PLANARREFLECTION _LOWEND_MOBILE_QUALITY
-			#pragma multi_compile _ USE_STRUCTURED_BUFFER
-			#pragma multi_compile _ _STATIC_SHADER
-			#pragma multi_compile _ _BOATATTACK_WATER_DEBUG
-			#pragma multi_compile _ _LOWEND_MOBILE_QUALITY
+            Blend SrcAlpha OneMinusSrcAlpha
 
-			// -------------------------------------
-            // Universal Pipeline keywords/
-			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
-			
-			//#pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            //#pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
-			
-            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
-            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
-			#pragma multi_compile_fragment _ _LIGHT_COOKIES
-            #pragma multi_compile _ _CLUSTERED_RENDERING
-
-			#pragma multi_compile _ SHADOWS_SHADOWMASK
-
-			//--------------------------------------
-            // GPU Instancing
+            HLSLPROGRAM
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
 
-			////////////////////INCLUDES//////////////////////
-			#include "WaterCommon.hlsl"
+            #include "WaterCommon.hlsl"
 
-			//non-tess
-			#pragma vertex WaterVertex
-			#pragma fragment WaterFragment
-
-			ENDHLSL
-		}
-	}
-	FallBack "Hidden/InternalErrorShader"
+            #pragma vertex WaterVertex
+            #pragma fragment WaterFragment
+            ENDHLSL
+        }
+    }
+    FallBack "Hidden/InternalErrorShader"
 }

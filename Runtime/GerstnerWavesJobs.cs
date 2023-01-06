@@ -35,11 +35,11 @@ namespace WaterSystem
             if(Debug.isDebugBuild)
                 Debug.Log("Initializing Gerstner Waves Jobs");
             //Wave data
-            _waveCount = Ocean.Instance.waves.Length;
+            // _waveCount = Ocean.Instance.waves.Length;
             _waveData = new NativeArray<Data.Wave>(_waveCount, Allocator.Persistent);
             for (var i = 0; i < _waveData.Length; i++)
             {
-                _waveData[i] = Ocean.Instance.waves[i];
+                // _waveData[i] = Ocean.Instance.waves[i];
             }
 
             _positions = new NativeArray<float3>(4096, Allocator.Persistent);
@@ -137,11 +137,11 @@ namespace WaterSystem
             for (var index = 0; index < _positions.Length; index++)
             {
                 var depth = DepthGenerator.GetGlobalDepth(_positions[index]);
-                _opacity[index] = math.saturate(Ocean.Instance.settingsData._waveDepthProfile.Evaluate(1-math.saturate(-depth / 20f)));
+                // _opacity[index] = math.saturate(Ocean.Instance.settingsData._waveDepthProfile.Evaluate(1-math.saturate(-depth / 20f)));
             }
 
             // Buoyant Object Job
-            var offset = Ocean.Instance.transform.position.y;
+            // var offset = Ocean.Instance.transform.position.y;
             var waterHeight = new HeightJob()
             {
                 WaveData = _waveData,
@@ -150,7 +150,7 @@ namespace WaterSystem
                 Time = t,
                 OutPosition = _wavePos,
                 OutNormal = _waveNormal,
-                WaveLevelOffset = offset,
+                // WaveLevelOffset = offset,
                 Opacity = _opacity,
             };
                 

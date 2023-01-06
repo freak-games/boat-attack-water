@@ -81,14 +81,12 @@ WaveStruct GerstnerWave(half2 pos, float waveCountMulti, half amplitude, half di
 	return GerstnerWave(pos, waveCountMulti, amplitude, windDir, wavelength, omni, omniPos);
 }
 
-inline void SampleWaves(float3 position, half opacity, out WaveStruct waveOut)
+inline void SampleWaves(float3 position, out WaveStruct waveOut)
 {
 	waveOut = (WaveStruct)0;
 	half2 pos = position.xz;
-	//waveOut.position = 0;
-	//waveOut.normal = 0;
 	half waveCountMulti = 1.0 / _WaveCount;
-	opacity = saturate(opacity);
+	half opacity = saturate(0.25);
 
 	UNITY_LOOP
 	for(uint i = 0; i < _WaveCount; i++)

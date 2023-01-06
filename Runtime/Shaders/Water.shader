@@ -2,8 +2,6 @@
 {
     Properties
     {
-        _DitherPattern ("Dithering Pattern", 2D) = "bump" {}
-        [Toggle(_STATIC_SHADER)] _Static ("Static", Float) = 0
     }
     SubShader
     {
@@ -22,8 +20,6 @@
             }
 
             HLSLPROGRAM
-            // TODO: Why it's needed?
-            #pragma shader_feature _REFLECTION_PROBES
             
             #pragma multi_compile_instancing
             #pragma multi_compile_fog

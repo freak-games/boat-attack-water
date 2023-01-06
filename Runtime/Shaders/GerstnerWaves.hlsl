@@ -71,13 +71,13 @@ WaveStruct GerstnerWave(half2 pos, float waveCountMulti, half amplitude, half2 d
 	return waveOut;
 }
 
-WaveStruct GerstnerWave(half2 pos, float waveCountMulti, half amplitude, half direction, half wavelength, half omni, half2 omniPos)
+WaveStruct GerstnerWave(float2 pos, float waveCountMulti, float amplitude, float direction, float wavelength, float omni, float2 omniPos)
 {
 	direction = radians(direction); // convert the incoming degrees to radians, for directional waves
-	half2 dirWaveInput = half2(sin(direction), cos(direction)) * (1 - omni);
-	half2 omniWaveInput = (pos - omniPos) * omni;
+	float2 dirWaveInput = float2(sin(direction), cos(direction)) * (1 - omni);
+	float2 omniWaveInput = (pos - omniPos) * omni;
 
-	half2 windDir = normalize(dirWaveInput + omniWaveInput); // calculate wind direction
+	float2 windDir = normalize(dirWaveInput + omniWaveInput); // calculate wind direction
 	return GerstnerWave(pos, waveCountMulti, amplitude, windDir, wavelength, omni, omniPos);
 }
 

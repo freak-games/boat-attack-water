@@ -16,33 +16,18 @@ namespace WaterSystem
     [AddComponentMenu("URP Water System/Ocean")]
     public class Ocean : MonoBehaviour
     {
-        // Script references
-        private PlanarReflections _planarReflections;
-
-        private bool _useComputeBuffer;
-        public bool computeOverride;
-
         [HideInInspector, SerializeField] public Data.Wave[] waves;
 
-        private ComputeBuffer waveBuffer;
         private float _maxWaveHeight;
         private float _waveHeight;
 
         [SerializeReference] public Data.OceanSettings settingsData = new Data.OceanSettings();
         [HideInInspector, SerializeField] private WaterResources resources;
 
-        // Render Passes
-        // private InfiniteWaterPass _infiniteWaterPass;
         private WaterFxPass _waterBufferPass;
-        // private WaterCausticsPass _causticsPass;
-
-        // RuntimeMaterials
         private Material _causticMaterial;
-
-        // Runttime Resources
         private Texture2D _rampTexture;
 
-        // Shader props
         private static readonly int CameraRoll = Shader.PropertyToID("_CameraRoll");
         private static readonly int InvViewProjection = Shader.PropertyToID("_InvViewProjection");
         private static readonly int FoamMap = Shader.PropertyToID("_FoamMap");
@@ -52,10 +37,8 @@ namespace WaterSystem
         private static readonly int MaxDepth = Shader.PropertyToID("_MaxDepth");
         private static readonly int WaveCount = Shader.PropertyToID("_WaveCount");
         private static readonly int CubemapTexture = Shader.PropertyToID("_CubemapTexture");
-        private static readonly int WaveDataBuffer = Shader.PropertyToID("_WaveDataBuffer");
         private static readonly int WaveData = Shader.PropertyToID("waveData");
         private static readonly int WaterFXShaderTag = Shader.PropertyToID("_WaterFXMap");
-        private static readonly int BoatAttackWaterDebugPass = Shader.PropertyToID("_BoatAttack_Water_DebugPass");
 
         private static readonly int BoatAttackWaterDistanceBlend =
             Shader.PropertyToID("_BoatAttack_Water_DistanceBlend");
@@ -84,12 +67,6 @@ namespace WaterSystem
 #endif
 
             RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
-            if (!computeOverride)
-                _useComputeBuffer = SystemInfo.supportsComputeShaders &&
-                                    Application.platform != RuntimePlatform.WebGLPlayer &&
-                                    Application.platform != RuntimePlatform.Android;
-            else
-                _useComputeBuffer = false;
             Init();
         }
 
@@ -100,9 +77,7 @@ namespace WaterSystem
 
         void Cleanup()
         {
-            // GerstnerWavesJobs.Cleanup();
             RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
-            waveBuffer?.Dispose();
         }
 
         private void BeginCameraRendering(ScriptableRenderContext src, Camera cam)
@@ -112,34 +87,16 @@ namespace WaterSystem
             if (settingsData.refType == Data.ReflectionType.PlanarReflection)
                 PlanarReflections.Execute(src, cam, transform);
 
-            int current = QualitySettings.GetQualityLevel();
-
-            if (current > 0)
-                if (_causticMaterial == null)
-                {
-                    _causticMaterial = CoreUtils.CreateEngineMaterial(resources.causticShader);
-                    _causticMaterial.SetTexture("_CausticMap", resources.defaultSurfaceMap);
-                }
-
-            // _infiniteWaterPass ??= new InfiniteWaterPass(resources.defaultInfinitewWaterMesh);
             _waterBufferPass ??= new WaterFxPass();
 
-            // if (current > 0)
-            //     _causticsPass ??= new WaterCausticsPass(_causticMaterial);
-
             var urpData = cam.GetUniversalAdditionalCameraData();
-            // urpData.scriptableRenderer.EnqueuePass(_infiniteWaterPass);
             urpData.scriptableRenderer.EnqueuePass(_waterBufferPass);
-
-            // if (current > 0)
-            //     urpData.scriptableRenderer.EnqueuePass(_causticsPass);
 
             var roll = cam.transform.localEulerAngles.z;
             Shader.SetGlobalFloat(CameraRoll, roll);
             Shader.SetGlobalMatrix(InvViewProjection,
                 (GL.GetGPUProjectionMatrix(cam.projectionMatrix, false) * cam.worldToCameraMatrix).inverse);
 
-            // Water matrix
             const float quantizeValue = 6.25f;
             const float forwards = 10f;
             const float yOffset = -0.25f;
@@ -224,28 +181,6 @@ namespace WaterSystem
             Shader.SetGlobalFloat(MaxDepth, settingsData._waterMaxVisibility);
             Shader.SetGlobalFloat(BoatAttackWaterDistanceBlend, settingsData.distanceBlend);
             Shader.SetGlobalFloat(BoatAttackWaterFoamIntensity, settingsData._foamIntensity);
-
-            switch (settingsData.refType)
-            {
-                case Data.ReflectionType.Cubemap:
-                    Shader.EnableKeyword("_REFLECTION_CUBEMAP");
-                    Shader.DisableKeyword("_REFLECTION_PROBES");
-                    Shader.DisableKeyword("_REFLECTION_PLANARREFLECTION");
-                    Shader.SetGlobalTexture(CubemapTexture, settingsData.cubemapRefType);
-                    break;
-                case Data.ReflectionType.ReflectionProbe:
-                    Shader.DisableKeyword("_REFLECTION_CUBEMAP");
-                    Shader.EnableKeyword("_REFLECTION_PROBES");
-                    Shader.DisableKeyword("_REFLECTION_PLANARREFLECTION");
-                    break;
-                case Data.ReflectionType.PlanarReflection:
-                    Shader.DisableKeyword("_REFLECTION_CUBEMAP");
-                    Shader.DisableKeyword("_REFLECTION_PROBES");
-                    Shader.EnableKeyword("_REFLECTION_PLANARREFLECTION");
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
 
             Shader.SetGlobalInt(WaveCount, waves.Length);
             Shader.DisableKeyword("USE_STRUCTURED_BUFFER");

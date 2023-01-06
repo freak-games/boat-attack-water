@@ -32,7 +32,7 @@
 
             struct Output
             {
-                half4 color : SV_Target;
+                float4 color : SV_Target;
                 float depth : SV_Depth;
             };
 
@@ -66,17 +66,17 @@
 
             Output InfiniteWaterFragment(Varyings i)
             {
-                half4 screenUV = 0.0;
+                float4 screenUV = 0.0;
                 // screenUV.xy  = i.screenPosition.xy / i.screenPosition.w; // screen UVs
                 screenUV.zw = screenUV.xy; // screen UVs
-                //half2 screenUV = i.screenPosition.xy / i.screenPosition.w; // screen UVs
+                //float2 screenUV = i.screenPosition.xy / i.screenPosition.w; // screen UVs
 
-                half4 waterBufferA = WaterBufferA(screenUV.xy);
-                // half4 waterBufferB = WaterBufferB(screenUV.xy);
+                float4 waterBufferA = WaterBufferA(screenUV.xy);
+                // float4 waterBufferB = WaterBufferB(screenUV.xy);
 
                 InfinitePlane plane = WorldPlane(i.viewDirectionWS, i.positionWS);
                 i.positionWS = plane.positionWS;
-                half3 viewDirectionWS = GetCameraPositionWS().xyz - i.positionWS.xyz;
+                float3 viewDirectionWS = GetCameraPositionWS().xyz - i.positionWS.xyz;
 
                 Output output;
                 // if(length(viewDirectionWS) > _ProjectionParams.z)
@@ -90,7 +90,7 @@
 
                 i.fogFactorNoise.x = ComputeFogFactor(TransformWorldToHClip(plane.positionWS).z);
 
-                i.normalWS = half3(0.0, 1.0, 0.0);
+                i.normalWS = float3(0.0, 1.0, 0.0);
                 i.viewDirectionWS = normalize(GetCameraPositionWS() - i.positionWS).xyzz;
                 // i.additionalData = additionalData;
                 i.uv = DetailUVs(i.positionWS * (1 / _Size), 1);
@@ -102,7 +102,7 @@
                 // WaterSurfaceData surfaceData;
                 // InitializeSurfaceData(inputData, surfaceData, additionalData);
 
-                half4 color;
+                float4 color;
                 color.a = 1;
                 color.rgb = WaterShading(inputData, screenUV.xy);
 

@@ -16,13 +16,18 @@ namespace WaterSystem
     [AddComponentMenu("URP Water System/Ocean")]
     public class Ocean : MonoBehaviour
     {
+        public Texture2D defaultFoamMap; // a default foam texture map
+        public Texture2D defaultSurfaceMap; // a default normal/caustic map
+        public Texture2D defaultWaterFX; // texture with correct values for default WaterFX
+        public Material defaultSeaMaterial;
+        public Mesh[] defaultWaterMeshes;
+
         [HideInInspector, SerializeField] public Data.Wave[] waves;
 
         private float _maxWaveHeight;
         private float _waveHeight;
 
         [SerializeReference] public Data.OceanSettings settingsData = new Data.OceanSettings();
-        [HideInInspector, SerializeField] private WaterResources resources;
 
         private WaterFxPass _waterBufferPass;
         private Material _causticMaterial;
@@ -57,15 +62,6 @@ namespace WaterSystem
 
         private void OnEnable()
         {
-#if UNITY_EDITOR
-            if (resources == null)
-            {
-                var data = AssetDatabase.LoadAssetAtPath<WaterResources>(
-                    "Packages/com.unity.urp-water-system/Runtime/Data/WaterResources.asset");
-                resources = data;
-            }
-#endif
-
             RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
             Init();
         }
@@ -119,11 +115,11 @@ namespace WaterSystem
             Shader.EnableKeyword("_REFLECTION_PROBES");
             Shader.DisableKeyword("_REFLECTION_PLANARREFLECTION");
 
-            foreach (var mesh in resources.defaultWaterMeshes)
+            foreach (var mesh in defaultWaterMeshes)
             {
                 Graphics.DrawMesh(mesh,
                     matrix,
-                    resources.defaultSeaMaterial,
+                    defaultSeaMaterial,
                     gameObject.layer,
                     cam,
                     0,
@@ -146,11 +142,6 @@ namespace WaterSystem
             PlanarReflections.m_settings = settingsData.planarSettings;
             PlanarReflections.m_settings.m_ClipPlaneOffset = 0; //transform.position.y;
 
-            if (resources == null)
-            {
-                resources = Resources.Load("WaterResources") as WaterResources;
-            }
-
             Shader.DisableKeyword("_BOATATTACK_WATER_DEBUG");
         }
 
@@ -158,9 +149,9 @@ namespace WaterSystem
         {
             SetupWaves(settingsData._customWaves);
 
-            Shader.SetGlobalTexture(FoamMap, resources.defaultFoamMap);
-            Shader.SetGlobalTexture(SurfaceMap, resources.defaultSurfaceMap);
-            Shader.SetGlobalTexture(WaterFXShaderTag, resources.defaultWaterFX);
+            Shader.SetGlobalTexture(FoamMap, defaultFoamMap);
+            Shader.SetGlobalTexture(SurfaceMap, defaultSurfaceMap);
+            Shader.SetGlobalTexture(WaterFXShaderTag, defaultWaterFX);
 
             _maxWaveHeight = 0f;
             foreach (var w in waves)

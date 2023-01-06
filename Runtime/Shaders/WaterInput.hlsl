@@ -83,27 +83,15 @@ struct VaryingsInfinite // infinite water Varyings
     float4  positionCS              : SV_POSITION;
 };
 
-struct WaterSurfaceData
-{
-    half3   absorption;
-	half3   scattering;
-    half    foam;
-    half    foamMask;
-};
-
 struct WaterInputData
 {
     float3 positionWS;
     half3 normalWS;
     half3 viewDirectionWS;
-    float2 reflectionUV;
-    float2 refractionUV;
     float4 detailUV;
     float4 shadowCoord;
     half4 waterBufferA;
-    half4 waterBufferB;
     half fogCoord;
-    float depth;
     half3 GI;
 };
 

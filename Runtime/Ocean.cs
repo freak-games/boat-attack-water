@@ -120,7 +120,7 @@ namespace WaterSystem
 
         void Cleanup()
         {
-            GerstnerWavesJobs.Cleanup();
+            // GerstnerWavesJobs.Cleanup();
             RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
             waveBuffer?.Dispose();
         }
@@ -272,13 +272,13 @@ namespace WaterSystem
             Shader.SetGlobalInt(BoatAttackWaterDebugPass, (int)shadingDebug);
 
             //CPU side
-            if (GerstnerWavesJobs.Initialized == false)
-                GerstnerWavesJobs.Init();
+            // if (GerstnerWavesJobs.Initialized == false)
+            //     GerstnerWavesJobs.Init();
         }
 
         private void LateUpdate()
         {
-            GerstnerWavesJobs.UpdateHeights();
+            // GerstnerWavesJobs.UpdateHeights();
         }
 
         public void FragWaveNormals(bool toggle)

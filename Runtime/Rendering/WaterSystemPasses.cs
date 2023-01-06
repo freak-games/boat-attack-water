@@ -202,7 +202,7 @@ namespace WaterSystem.Rendering
                     ? RenderSettings.sun.transform.localToWorldMatrix
                     : Matrix4x4.TRS(Vector3.zero, Quaternion.Euler(-45f, 45f, 0f), Vector3.one);
                 WaterCausticMaterial.SetMatrix("_MainLightDir", sunMatrix);
-                WaterCausticMaterial.SetFloat("_WaterLevel", Ocean.Instance.transform.position.y);
+                // WaterCausticMaterial.SetFloat("_WaterLevel", Ocean.Instance.transform.position.y);
 
 
                 // Create mesh if needed
@@ -212,7 +212,7 @@ namespace WaterSystem.Rendering
                 // Create the matrix to position the caustics mesh.
                 var position = cam.transform.position;
                 //position.y = 0; // TODO should read a global 'water height' variable.
-                position.y = Ocean.Instance.transform.position.y;
+                // position.y = Ocean.Instance.transform.position.y;
                 var matrix = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one);
                 // Setup the CommandBuffer and draw the mesh with the caustic material and matrix
                 cmd.DrawMesh(m_mesh, matrix, WaterCausticMaterial, 0, 0);

@@ -16,17 +16,6 @@ namespace WaterSystem
     [AddComponentMenu("URP Water System/Ocean")]
     public class Ocean : MonoBehaviour
     {
-        // Singleton
-        private static Ocean _instance;
-        public static Ocean Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = (Ocean)FindObjectOfType(typeof(Ocean));
-                return _instance;
-            }
-        }
         // Script references
         private PlanarReflections _planarReflections;
 
@@ -42,12 +31,10 @@ namespace WaterSystem
         [SerializeReference] public Data.OceanSettings settingsData = new Data.OceanSettings();
         [HideInInspector, SerializeField] private WaterResources resources;
 
-        public DebugShading shadingDebug;
-
         // Render Passes
-        private InfiniteWaterPass _infiniteWaterPass;
+        // private InfiniteWaterPass _infiniteWaterPass;
         private WaterFxPass _waterBufferPass;
-        private WaterCausticsPass _causticsPass;
+        // private WaterCausticsPass _causticsPass;
 
         // RuntimeMaterials
         private Material _causticMaterial;
@@ -69,30 +56,29 @@ namespace WaterSystem
         private static readonly int WaveData = Shader.PropertyToID("waveData");
         private static readonly int WaterFXShaderTag = Shader.PropertyToID("_WaterFXMap");
         private static readonly int BoatAttackWaterDebugPass = Shader.PropertyToID("_BoatAttack_Water_DebugPass");
-        private static readonly int BoatAttackWaterDistanceBlend = Shader.PropertyToID("_BoatAttack_Water_DistanceBlend");
+
+        private static readonly int BoatAttackWaterDistanceBlend =
+            Shader.PropertyToID("_BoatAttack_Water_DistanceBlend");
+
         private static readonly int AbsorptionColor = Shader.PropertyToID("_AbsorptionColor");
         private static readonly int ScatteringColor = Shader.PropertyToID("_ScatteringColor");
-        private static readonly int BoatAttackWaterMicroWaveIntensity = Shader.PropertyToID("_BoatAttack_Water_MicroWaveIntensity");
-        private static readonly int BoatAttackWaterFoamIntensity = Shader.PropertyToID("_BoatAttack_water_FoamIntensity");
+
+        private static readonly int BoatAttackWaterMicroWaveIntensity =
+            Shader.PropertyToID("_BoatAttack_Water_MicroWaveIntensity");
+
+        private static readonly int BoatAttackWaterFoamIntensity =
+            Shader.PropertyToID("_BoatAttack_water_FoamIntensity");
+
         private static readonly int RampTexture = Shader.PropertyToID("_BoatAttack_RampTexture");
         private static readonly string LowEndMobileQuality = "_LOWEND_MOBILE_QUALITY";
 
         private void OnEnable()
         {
-            if (_instance == null)
-            {
-                _instance = this;
-            }
-            else if (_instance != this)
-            {
-                Debug.LogError("Multiple Ocean Components cannot exist in tandem");
-                //SafeDestroy(this);
-            }
-
 #if UNITY_EDITOR
             if (resources == null)
             {
-                var data = AssetDatabase.LoadAssetAtPath<WaterResources>("Packages/com.unity.urp-water-system/Runtime/Data/WaterResources.asset");
+                var data = AssetDatabase.LoadAssetAtPath<WaterResources>(
+                    "Packages/com.unity.urp-water-system/Runtime/Data/WaterResources.asset");
                 resources = data;
             }
 #endif
@@ -100,8 +86,8 @@ namespace WaterSystem
             RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
             if (!computeOverride)
                 _useComputeBuffer = SystemInfo.supportsComputeShaders &&
-                                   Application.platform != RuntimePlatform.WebGLPlayer &&
-                                   Application.platform != RuntimePlatform.Android;
+                                    Application.platform != RuntimePlatform.WebGLPlayer &&
+                                    Application.platform != RuntimePlatform.Android;
             else
                 _useComputeBuffer = false;
             Init();
@@ -110,12 +96,6 @@ namespace WaterSystem
         private void OnDisable()
         {
             Cleanup();
-        }
-
-        private void OnDestroy()
-        {
-            if (_instance == this)
-                _instance = null;
         }
 
         void Cleanup()
@@ -127,7 +107,7 @@ namespace WaterSystem
 
         private void BeginCameraRendering(ScriptableRenderContext src, Camera cam)
         {
-            if (cam.cameraType == CameraType.Preview || _instance == null) return;
+            if (cam.cameraType == CameraType.Preview) return;
 
             if (settingsData.refType == Data.ReflectionType.PlanarReflection)
                 PlanarReflections.Execute(src, cam, transform);
@@ -141,18 +121,18 @@ namespace WaterSystem
                     _causticMaterial.SetTexture("_CausticMap", resources.defaultSurfaceMap);
                 }
 
-            _infiniteWaterPass ??= new InfiniteWaterPass(resources.defaultInfinitewWaterMesh);
+            // _infiniteWaterPass ??= new InfiniteWaterPass(resources.defaultInfinitewWaterMesh);
             _waterBufferPass ??= new WaterFxPass();
 
-            if (current > 0)
-                _causticsPass ??= new WaterCausticsPass(_causticMaterial);
+            // if (current > 0)
+            //     _causticsPass ??= new WaterCausticsPass(_causticMaterial);
 
             var urpData = cam.GetUniversalAdditionalCameraData();
-            urpData.scriptableRenderer.EnqueuePass(_infiniteWaterPass);
+            // urpData.scriptableRenderer.EnqueuePass(_infiniteWaterPass);
             urpData.scriptableRenderer.EnqueuePass(_waterBufferPass);
 
-            if (current > 0)
-                urpData.scriptableRenderer.EnqueuePass(_causticsPass);
+            // if (current > 0)
+            //     urpData.scriptableRenderer.EnqueuePass(_causticsPass);
 
             var roll = cam.transform.localEulerAngles.z;
             Shader.SetGlobalFloat(CameraRoll, roll);
@@ -171,53 +151,16 @@ namespace WaterSystem
 
             var blendDist = (settingsData.distanceBlend + 10) / 100f;
 
-            var matrix = Matrix4x4.TRS(newPos, Quaternion.identity, Vector3.one * blendDist); // transform.localToWorldMatrix;
+            var matrix =
+                Matrix4x4.TRS(newPos, Quaternion.identity, Vector3.one * blendDist); // transform.localToWorldMatrix;
 
-            bool receiveShadows = false;
+            Shader.EnableKeyword(LowEndMobileQuality);
 
-            if (current != m_qLevel)
-            {
-                m_qLevel = current;
+            settingsData.refType = Data.ReflectionType.ReflectionProbe;
 
-                if (m_qLevel < 1)
-                    Shader.EnableKeyword(LowEndMobileQuality);
-                else
-                    Shader.DisableKeyword(LowEndMobileQuality);
-
-                if (m_qLevel > 0)
-                    settingsData.refType = Data.ReflectionType.PlanarReflection;
-                else
-                    settingsData.refType = Data.ReflectionType.ReflectionProbe;
-
-                if (m_qLevel < 2)
-                    settingsData.planarSettings.m_ResolutionMode = PlanarReflections.ResolutionModes.Half;
-                else
-                    settingsData.planarSettings.m_ResolutionMode = PlanarReflections.ResolutionModes.Quarter;
-
-                switch (settingsData.refType)
-                {
-                    case Data.ReflectionType.Cubemap:
-                        Shader.EnableKeyword("_REFLECTION_CUBEMAP");
-                        Shader.DisableKeyword("_REFLECTION_PROBES");
-                        Shader.DisableKeyword("_REFLECTION_PLANARREFLECTION");
-                        break;
-                    case Data.ReflectionType.ReflectionProbe:
-                        Shader.DisableKeyword("_REFLECTION_CUBEMAP");
-                        Shader.EnableKeyword("_REFLECTION_PROBES");
-                        Shader.DisableKeyword("_REFLECTION_PLANARREFLECTION");
-                        break;
-                    case Data.ReflectionType.PlanarReflection:
-                        Shader.DisableKeyword("_REFLECTION_CUBEMAP");
-                        Shader.DisableKeyword("_REFLECTION_PROBES");
-                        Shader.EnableKeyword("_REFLECTION_PLANARREFLECTION");
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-
-                if (m_qLevel > 1)
-                    receiveShadows = true;
-            }
+            Shader.DisableKeyword("_REFLECTION_CUBEMAP");
+            Shader.EnableKeyword("_REFLECTION_PROBES");
+            Shader.DisableKeyword("_REFLECTION_PLANARREFLECTION");
 
             foreach (var mesh in resources.defaultWaterMeshes)
             {
@@ -229,21 +172,11 @@ namespace WaterSystem
                     0,
                     null,
                     ShadowCastingMode.Off,
-                    receiveShadows,
+                    false,
                     null,
                     LightProbeUsage.Off,
                     null);
             }
-        }
-
-        int m_qLevel = -1;
-
-        private static void SafeDestroy(Object o)
-        {
-            if (Application.isPlaying)
-                Destroy(o);
-            else
-                DestroyImmediate(o);
         }
 
         [ContextMenu("Init")]
@@ -254,47 +187,20 @@ namespace WaterSystem
 
             PlanarReflections.m_planeOffset = transform.position.y;
             PlanarReflections.m_settings = settingsData.planarSettings;
-            PlanarReflections.m_settings.m_ClipPlaneOffset = 0;//transform.position.y;
+            PlanarReflections.m_settings.m_ClipPlaneOffset = 0; //transform.position.y;
 
             if (resources == null)
             {
                 resources = Resources.Load("WaterResources") as WaterResources;
             }
 
-            if (shadingDebug != DebugShading.none)
-            {
-                Shader.EnableKeyword("_BOATATTACK_WATER_DEBUG");
-            }
-            else
-            {
-                Shader.DisableKeyword("_BOATATTACK_WATER_DEBUG");
-            }
-            Shader.SetGlobalInt(BoatAttackWaterDebugPass, (int)shadingDebug);
-
-            //CPU side
-            // if (GerstnerWavesJobs.Initialized == false)
-            //     GerstnerWavesJobs.Init();
-        }
-
-        private void LateUpdate()
-        {
-            // GerstnerWavesJobs.UpdateHeights();
-        }
-
-        public void FragWaveNormals(bool toggle)
-        {
-            var mat = GetComponent<Renderer>().sharedMaterial;
-            if (toggle)
-                mat.EnableKeyword("GERSTNER_WAVES");
-            else
-                mat.DisableKeyword("GERSTNER_WAVES");
+            Shader.DisableKeyword("_BOATATTACK_WATER_DEBUG");
         }
 
         private void SetWaves()
         {
             SetupWaves(settingsData._customWaves);
 
-            // set default resources
             Shader.SetGlobalTexture(FoamMap, resources.defaultFoamMap);
             Shader.SetGlobalTexture(SurfaceMap, resources.defaultSurfaceMap);
             Shader.SetGlobalTexture(WaterFXShaderTag, resources.defaultWaterFX);
@@ -304,6 +210,7 @@ namespace WaterSystem
             {
                 _maxWaveHeight += w.amplitude;
             }
+
             _maxWaveHeight /= waves.Length;
 
             _waveHeight = transform.position.y;
@@ -341,21 +248,8 @@ namespace WaterSystem
             }
 
             Shader.SetGlobalInt(WaveCount, waves.Length);
-
-            //GPU side
-            if (_useComputeBuffer)
-            {
-                Shader.EnableKeyword("USE_STRUCTURED_BUFFER");
-                waveBuffer?.Dispose();
-                waveBuffer = new ComputeBuffer(10, (sizeof(float) * 6));
-                waveBuffer.SetData(waves);
-                Shader.SetGlobalBuffer(WaveDataBuffer, waveBuffer);
-            }
-            else
-            {
-                Shader.DisableKeyword("USE_STRUCTURED_BUFFER");
-                Shader.SetGlobalVectorArray(WaveData, GetWaveData());
-            }
+            Shader.DisableKeyword("USE_STRUCTURED_BUFFER");
+            Shader.SetGlobalVectorArray(WaveData, GetWaveData());
         }
 
         private void GenerateColorRamp()
@@ -366,23 +260,11 @@ namespace WaterSystem
             var pixelHeight = Mathf.CeilToInt(rampCount / 4.0f);
 
             if (_rampTexture == null)
-                _rampTexture = new Texture2D(rampRes, pixelHeight, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
+                _rampTexture = new Texture2D(rampRes, pixelHeight, GraphicsFormat.R8G8B8A8_SRGB,
+                    TextureCreationFlags.None);
             _rampTexture.wrapMode = TextureWrapMode.Clamp;
 
-            // Foam shore
             var cols = new Color[rampRes * pixelHeight];
-            for (var i = 0; i < rampRes; i++)
-            {
-                var val = settingsData._shoreFoamProfile.Evaluate(i / (float)rampRes);
-                cols[i].r = Mathf.LinearToGammaSpace(val);
-            }
-            // Foam Gerstner waves
-            for (var i = 0; i < rampRes; i++)
-            {
-                var val = settingsData._waveFoamProfile.Evaluate(i / (float)rampRes);
-                cols[i].g = Mathf.LinearToGammaSpace(val);
-            }
-            // Depth Gerstner waves
             for (var i = 0; i < rampRes; i++)
             {
                 var val = settingsData._waveDepthProfile.Evaluate(i / (float)rampRes);
@@ -399,9 +281,11 @@ namespace WaterSystem
             var waveData = new Vector4[20];
             for (var i = 0; i < waves.Length; i++)
             {
-                waveData[i] = new Vector4(waves[i].amplitude, waves[i].direction, waves[i].wavelength, waves[i].onmiDir);
+                waveData[i] = new Vector4(waves[i].amplitude, waves[i].direction, waves[i].wavelength,
+                    waves[i].onmiDir);
                 waveData[i + 10] = new Vector4(waves[i].origin.x, waves[i].origin.y, 0, 0);
             }
+
             return waveData;
         }
 
@@ -430,32 +314,13 @@ namespace WaterSystem
                     waves[i] = new Data.Wave(amp, dir, len, Vector2.zero, false);
                     Random.InitState(settingsData.randomSeed + i + 1);
                 }
+
                 Random.state = backupSeed;
             }
             else
             {
                 waves = settingsData._waves.ToArray();
             }
-        }
-
-        [Serializable]
-        public enum DebugMode { none, stationary, screen };
-
-        [Serializable]
-        public enum DebugShading
-        {
-            none,
-            normalWS,
-            Reflection,
-            Refraction,
-            Specular,
-            SSS,
-            Foam,
-            FoamMask,
-            WaterBufferA,
-            WaterBufferB,
-            Depth,
-            WaterDepth
         }
     }
 }

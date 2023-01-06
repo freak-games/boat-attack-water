@@ -110,8 +110,6 @@ namespace WaterSystem
             var ocean = target as Ocean;
             EditorGUI.BeginChangeCheck();
 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(Ocean.shadingDebug)));
-            
             foreach (var value in Enum.GetValues(typeof(Sections)))
             {
                 DoSection((Sections)value);

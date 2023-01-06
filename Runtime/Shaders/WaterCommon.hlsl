@@ -100,7 +100,7 @@ float3 WaterShading(WaterInputData input, float2 screenUV)
     BRDFData brdfData;
     half alpha = 1;
     InitializeBRDFData(half3(0, 0, 0), 0, half3(1, 1, 1), 1, alpha, brdfData);
-    half3 spec = DirectBDRF(brdfData, input.normalWS, mainLight.direction, input.viewDirectionWS) * mainLight.color;
+    half3 spec = DirectBDRF(brdfData, input.normalWS, mainLight.direction, input.viewDirectionWS) * mainLight.color * 10;
 
     half3 sss = GI;
     sss *= Scattering(1000);

@@ -1,4 +1,5 @@
-﻿using Unity.Mathematics;
+﻿using System;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -38,6 +39,7 @@ namespace WaterSystem
         public int randomSeed = 3234;
 
         public Color _scatteringColor = new Color(0.0f, 0.085f, 0.1f);
+        public float glossPower = 1f;
 
         public float _microWaveIntensity = 0.25f;
 
@@ -53,6 +55,7 @@ namespace WaterSystem
         private InfiniteWaterPass _infiniteWaterPass;
         private WaterFxPass _waterBufferPass;
 
+        private static readonly int GlossPower = Shader.PropertyToID("_GlossPower");
         private static readonly int SurfaceMap = Shader.PropertyToID("_SurfaceMap");
         private static readonly int WaveCount = Shader.PropertyToID("_WaveCount");
         private static readonly int WaveData = Shader.PropertyToID("waveData");
@@ -131,10 +134,16 @@ namespace WaterSystem
             SetWaves();
         }
 
+        private void OnValidate()
+        {
+            Init();
+        }
+
         private void SetWaves()
         {
             SetupWaves();
 
+            Shader.SetGlobalFloat(GlossPower, glossPower);
             Shader.SetGlobalTexture(SurfaceMap, defaultSurfaceMap);
             Shader.SetGlobalColor(ScatteringColor, _scatteringColor.linear);
             Shader.SetGlobalFloat(BoatAttackWaterMicroWaveIntensity, _microWaveIntensity);

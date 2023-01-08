@@ -52,9 +52,8 @@
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.positionCS = vertexInput.positionCS;
                 output.positionWS = vertexInput.positionWS;
-                // output.screenPosition = ComputeScreenPos(vertexInput.positionCS);
 
-                
+
                 float3 viewPos = vertexInput.positionVS;
                 output.viewDirectionWS.xyz = UNITY_MATRIX_IT_MV[2].xyz;
                 output.viewDirectionWS.w = length(viewPos / viewPos.z);
@@ -67,40 +66,20 @@
             Output InfiniteWaterFragment(Varyings i)
             {
                 float4 screenUV = 0.0;
-                // screenUV.xy  = i.screenPosition.xy / i.screenPosition.w; // screen UVs
                 screenUV.zw = screenUV.xy; // screen UVs
-                //float2 screenUV = i.screenPosition.xy / i.screenPosition.w; // screen UVs
-
-                float4 waterBufferA = WaterBufferA(screenUV.xy);
-                // float4 waterBufferB = WaterBufferB(screenUV.xy);
 
                 InfinitePlane plane = WorldPlane(i.viewDirectionWS, i.positionWS);
                 i.positionWS = plane.positionWS;
-                float3 viewDirectionWS = GetCameraPositionWS().xyz - i.positionWS.xyz;
 
                 Output output;
-                // if(length(viewDirectionWS) > _ProjectionParams.z)
-                // {
-                // 	clip(-1);
-                // 	return output;
-                // }
-
-                float3 viewPos = TransformWorldToView(i.positionWS);
-                float4 additionalData = float4(length(viewPos / viewPos.z), length(viewDirectionWS), waterBufferA.w, 0);
-
                 i.fogFactorNoise.x = ComputeFogFactor(TransformWorldToHClip(plane.positionWS).z);
 
                 i.normalWS = float3(0.0, 1.0, 0.0);
                 i.viewDirectionWS = normalize(GetCameraPositionWS() - i.positionWS).xyzz;
-                // i.additionalData = additionalData;
                 i.uv = DetailUVs(i.positionWS * (1 / _Size), 1);
-                i.preWaveSP = screenUV.xyz;
 
                 WaterInputData inputData;
                 InitializeInputData(i, inputData, screenUV.xy);
-
-                // WaterSurfaceData surfaceData;
-                // InitializeSurfaceData(inputData, surfaceData, additionalData);
 
                 float4 color;
                 color.a = 1;

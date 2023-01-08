@@ -67,6 +67,7 @@ MonoBehaviour:
   distanceBlend: 500
   randomSeed: 3234
   _scatteringColor: {r: 0, g: 0.25384614, b: 0.3, a: 1}
+  glossPower: 10
   _microWaveIntensity: 0.25
   waveCount: 5
   amplitude: 10

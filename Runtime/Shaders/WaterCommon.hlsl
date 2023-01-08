@@ -90,6 +90,19 @@ void InitializeInputData(Varyings input, out WaterInputData inputData, float2 sc
     inputData.GI = 0;
 }
 
+float3 MixCustomFog(float3 fragColor, float3 fogColor, float fogFactor, float fresnel)
+{
+    #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+    if (IsFogEnabled())
+    {
+        float fogIntensity = ComputeFogIntensity(fogFactor);
+        float3 fogMixed = lerp(fogColor, fragColor, fogIntensity);
+        fragColor = lerp(fragColor, fogMixed, fresnel);
+    }
+    #endif
+    return fragColor;
+}
+
 float3 WaterShading(WaterInputData input, float2 screenUV)
 {
     float fresnelTerm = CalculateFresnelTerm(input.normalWS, input.viewDirectionWS);
@@ -100,14 +113,15 @@ float3 WaterShading(WaterInputData input, float2 screenUV)
     BRDFData brdfData;
     float alpha = 1;
     InitializeBRDFData(float3(0, 0, 0), 0, float3(1, 1, 1), 1, alpha, brdfData);
-    float3 spec = DirectBDRF(brdfData, input.normalWS, mainLight.direction, input.viewDirectionWS) * mainLight.color * _GlossPower;
+    float3 spec = DirectBDRF(brdfData, input.normalWS, mainLight.direction, input.viewDirectionWS) * mainLight.color *
+        _GlossPower;
 
     float3 sss = GI;
     sss *= Scattering(1000);
 
     float3 reflection = SampleReflections(input.normalWS, input.viewDirectionWS, screenUV, 0.0);
     float3 output = lerp(lerp(sss, reflection + spec, fresnelTerm), 0, 0);
-    output = MixFog(output, input.fogCoord);
+    output = MixCustomFog(output, unity_FogColor.rgb, input.fogCoord, (1 - fresnelTerm));
     return output;
 }
 

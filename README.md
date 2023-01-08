@@ -23,6 +23,9 @@ This fork is focused on achieving maximum performance on low-end devices. All he
 - probe reflections;
 - specular highlights;
 
+We also add a new features:
+- advanced horizon fog mixing;
+
 ### Performance
 
 The system was tested on a Google Nexus (Android) device and reached stable 60+ fps in native resolution.

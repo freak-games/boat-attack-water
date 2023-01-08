@@ -9,6 +9,7 @@ float _BoatAttack_Water_MicroWaveIntensity;
 float _WaveHeight;
 float _MaxDepth;
 float _MaxWaveHeight;
+float _GlossPower;
 
 TEXTURE2D(_WaterBufferA);
 SAMPLER(sampler_ScreenTextures_linear_clamp);

@@ -1,0 +1,113 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3365684540734140875
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3365684540734140873}
+  - component: {fileID: 3365684540734140872}
+  m_Layer: 0
+  m_Name: Ocean
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3365684540734140873
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3365684540734140875}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3365684540734140872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3365684540734140875}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6edb8448c9b94f018953ca2a6fa5891, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultSurfaceMap: {fileID: 2800000, guid: f395b7d64f44848c6a3cba1f1173fe90, type: 3}
+  defaultSeaMaterial: {fileID: 2100000, guid: 4849d4d15a9cb42eb9533ae935e2630b, type: 2}
+  defaultWaterMeshes:
+  - {fileID: 4300026, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300028, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300030, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300032, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300034, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300004, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300006, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300012, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300014, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300024, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300022, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300020, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300018, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300010, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300016, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300008, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300002, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  distanceBlend: 500
+  randomSeed: 3234
+  _scatteringColor: {r: 0, g: 0.25384614, b: 0.3, a: 1}
+  glossPower: 10
+  _microWaveIntensity: 0.25
+  waveCount: 5
+  amplitude: 10
+  direction: 45
+  wavelength: 30
+  waterInf: {fileID: 4800000, guid: 5f51d4f8f480441339ead24ab495af7d, type: 3}
+  waves:
+  - amplitude: 3.8922024
+    direction: 106.22566
+    wavelength: 16.45759
+    origin:
+      x: 0
+      y: 0
+    onmiDir: 0
+  - amplitude: 11.340857
+    direction: 23.92044
+    wavelength: 20.58092
+    origin:
+      x: 0
+      y: 0
+    onmiDir: 0
+  - amplitude: 3.1018589
+    direction: 103.05429
+    wavelength: 19.73372
+    origin:
+      x: 0
+      y: 0
+    onmiDir: 0
+  - amplitude: 12.128884
+    direction: 67.21166
+    wavelength: 33.971157
+    origin:
+      x: 0
+      y: 0
+    onmiDir: 0
+  - amplitude: 8.163686
+    direction: 18.688784
+    wavelength: 52.683853
+    origin:
+      x: 0
+      y: 0
+    onmiDir: 0
+  defaultInfinitewWaterMesh: {fileID: 4300000, guid: 0694fda6617df4cd6a3d240f5eeb580b, type: 3}

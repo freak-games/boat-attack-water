@@ -40,10 +40,10 @@ float3 Highlights(float3 positionWS, float roughness, float3 normalWS, float3 vi
     // on mobiles (where float actually means something) denominator have risk of overflow
     // clamp below was added specifically to "fix" that, but dx compiler (we convert bytecode to metal/gles)
     // sees that specularTerm have only non-negative terms, so it skips max(0,..) in clamp (leaving only min(100,...))
-    #if defined (SHADER_API_MOBILE)
+    // #if defined (SHADER_API_MOBILE)
     specularTerm = specularTerm - HALF_MIN;
     specularTerm = clamp(specularTerm, 0.0, 5.0); // Prevent FP16 overflow on mobiles
-    #endif
+    // #endif
     return specularTerm * mainLight.color * mainLight.distanceAttenuation;
 }
 

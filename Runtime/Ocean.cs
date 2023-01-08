@@ -1,10 +1,32 @@
-﻿using UnityEngine;
+﻿using System;
+using Unity.Mathematics;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using WaterSystem.Rendering;
+using Random = UnityEngine.Random;
 
 namespace WaterSystem
 {
+    [System.Serializable]
+    public struct Wave
+    {
+        public float amplitude; // height of the wave in units(m)
+        public float direction; // direction the wave travels in degrees from Z+
+        public float wavelength; // distance between crest>crest
+        public float2 origin; // Omi directional point of origin
+        public float onmiDir; // Is omni?
+
+        public Wave(float amp, float dir, float length, float2 org, bool omni)
+        {
+            amplitude = amp;
+            direction = dir;
+            wavelength = length;
+            origin = org;
+            onmiDir = omni ? 1 : 0;
+        }
+    }
+
     [ExecuteAlways, DisallowMultipleComponent]
     [AddComponentMenu("URP Water System/Ocean")]
     public class Ocean : MonoBehaviour
@@ -17,6 +39,7 @@ namespace WaterSystem
         public int randomSeed = 3234;
 
         public Color _scatteringColor = new Color(0.0f, 0.085f, 0.1f);
+        public float glossPower = 1f;
 
         public float _microWaveIntensity = 0.25f;
 
@@ -27,11 +50,12 @@ namespace WaterSystem
 
         public Shader waterInf;
 
-        [HideInInspector, SerializeField] public Data.Wave[] waves;
+        [HideInInspector, SerializeField] public Wave[] waves;
 
         private InfiniteWaterPass _infiniteWaterPass;
         private WaterFxPass _waterBufferPass;
 
+        private static readonly int GlossPower = Shader.PropertyToID("_GlossPower");
         private static readonly int SurfaceMap = Shader.PropertyToID("_SurfaceMap");
         private static readonly int WaveCount = Shader.PropertyToID("_WaveCount");
         private static readonly int WaveData = Shader.PropertyToID("waveData");
@@ -110,10 +134,16 @@ namespace WaterSystem
             SetWaves();
         }
 
+        private void OnValidate()
+        {
+            Init();
+        }
+
         private void SetWaves()
         {
             SetupWaves();
 
+            Shader.SetGlobalFloat(GlossPower, glossPower);
             Shader.SetGlobalTexture(SurfaceMap, defaultSurfaceMap);
             Shader.SetGlobalColor(ScatteringColor, _scatteringColor.linear);
             Shader.SetGlobalFloat(BoatAttackWaterMicroWaveIntensity, _microWaveIntensity);
@@ -144,7 +174,7 @@ namespace WaterSystem
             var d = direction;
             var l = wavelength;
             var numWave = waveCount;
-            waves = new Data.Wave[numWave];
+            waves = new Wave[numWave];
 
             var r = 1f / numWave;
 
@@ -154,7 +184,7 @@ namespace WaterSystem
                 var amp = a * p * Random.Range(0.33f, 1.66f);
                 var dir = d + Random.Range(-90f, 90f);
                 var len = l * p * Random.Range(0.6f, 1.4f);
-                waves[i] = new Data.Wave(amp, dir, len, Vector2.zero, false);
+                waves[i] = new Wave(amp, dir, len, Vector2.zero, false);
                 Random.InitState(randomSeed + i + 1);
             }
 

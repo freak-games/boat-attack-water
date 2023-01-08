@@ -8,10 +8,9 @@
     {
         Tags
         {
-            "RenderType"="Transparent" "Queue"="Transparent-101" "RenderPipeline" = "UniversalPipeline"
+            "RenderType"="Opaque" "RenderPipeline" = "UniversalPipeline"
         }
         ZWrite off
-        Cull off
 
         Pass
         {

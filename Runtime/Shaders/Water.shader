@@ -5,9 +5,9 @@
     {
         Tags
         {
-            "RenderType"="Transparent" "Queue"="Transparent-100" "RenderPipeline" = "UniversalPipeline"
+            "RenderType"="Transparent" "Queue"="Transparent-101" "RenderPipeline" = "UniversalPipeline"
         }
-        ZWrite On
+        ZWrite off
 
         Pass
         {
@@ -16,12 +16,9 @@
                 "LightMode" = "UniversalForward"
             }
 
-            ZWrite On
-
             Blend SrcAlpha OneMinusSrcAlpha
 
             HLSLPROGRAM
-            #pragma multi_compile_instancing
             #pragma multi_compile_fog
 
             #include "WaterCommon.hlsl"

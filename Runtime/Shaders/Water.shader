@@ -8,7 +8,7 @@
             "RenderType"="Transparent" "Queue"="Transparent-100" "RenderPipeline" = "UniversalPipeline"
         }
         
-        ZWrite On
+        ZWrite Off
 
         Blend SrcAlpha OneMinusSrcAlpha
 

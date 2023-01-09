@@ -11,8 +11,8 @@
             "RenderType"="Transparent" "Queue"="Transparent-101" "RenderPipeline" = "UniversalPipeline"
         }
         
-        ZWrite off
-        Cull off
+        ZWrite Off
+        Cull Off
 
         Pass
         {

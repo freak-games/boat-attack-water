@@ -8,9 +8,11 @@
     {
         Tags
         {
-            "RenderType"="Opaque" "RenderPipeline" = "UniversalPipeline"
+            "RenderType"="Transparent" "Queue"="Transparent-101" "RenderPipeline" = "UniversalPipeline"
         }
+        
         ZWrite off
+        Cull off
 
         Pass
         {
@@ -39,8 +41,6 @@
             {
                 Varyings output = (Varyings)0;
 
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
                 output.uv.xy = input.texcoord;
 
                 float3 cameraOffset = GetCameraPositionWS();
@@ -51,8 +51,7 @@
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.positionCS = vertexInput.positionCS;
                 output.positionWS = vertexInput.positionWS;
-
-
+                
                 float3 viewPos = vertexInput.positionVS;
                 output.viewDirectionWS.xyz = UNITY_MATRIX_IT_MV[2].xyz;
                 output.viewDirectionWS.w = length(viewPos / viewPos.z);

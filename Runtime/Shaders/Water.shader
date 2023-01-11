@@ -5,9 +5,12 @@
     {
         Tags
         {
-            "RenderType"="Transparent" "Queue"="Transparent-101" "RenderPipeline" = "UniversalPipeline"
+            "RenderType"="Transparent" "Queue"="Transparent-100" "RenderPipeline" = "UniversalPipeline"
         }
-        ZWrite off
+        
+        ZWrite Off
+
+        Blend SrcAlpha OneMinusSrcAlpha
 
         Pass
         {

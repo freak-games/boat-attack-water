@@ -46,8 +46,8 @@ namespace WaterSystem.Rendering
             if (!infiniteMaterial || !infiniteMesh) return;
 
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, new ProfilingSampler("Infinite Water")))
-            {
+            // using (new ProfilingScope(cmd, new ProfilingSampler("Infinite Water")))
+            // {
                 var probe = RenderSettings.ambientProbe;
 
                 infiniteMaterial.SetFloat("_BumpScale", 0.5f);
@@ -62,7 +62,7 @@ namespace WaterSystem.Rendering
 
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
-            }
+            // }
         }
     }
 

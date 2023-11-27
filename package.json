@@ -5,8 +5,6 @@
   "unity": "2020.3",
   "displayName": "Boat Attack Water System",
   "dependencies": {
-    "com.unity.mathematics": "1.1.0",
-    "com.unity.burst": "1.2.3",
     "com.unity.render-pipelines.universal": "10.5.0"
   },
   "samples": [

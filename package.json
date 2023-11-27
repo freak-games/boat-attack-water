@@ -1,7 +1,7 @@
 {
   "name": "com.freakgames.unity.urp-water-system",
   "description": "Optimized version of Unity Boat Attack water system for URP.",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "unity": "2020.3",
   "displayName": "Boat Attack Water System",
   "dependencies": {
